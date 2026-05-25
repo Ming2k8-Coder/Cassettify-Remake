@@ -4,6 +4,10 @@
     --secondary-bg-color: light-dark(#CDC9C3, #171616);
     --accent-color: #d77bba;
     --text-color: light-dark(#222831, #ffffff);
+    /*--primary-bg-color: light-dark(#FBF7F0, #FBF7F0);
+    --secondary-bg-color: light-dark(#CDC9C3, #CDC9C3);
+    --accent-color: #d77bba;
+    --text-color: light-dark(#222831, #222831);*/
 }
 
 @font-face {
@@ -62,7 +66,7 @@ button, input {
 
 input {
     font-family: "Quicksand";
-    font-size: 26px;
+    font-size: 24px;
     border-radius: 8px;
 }
 

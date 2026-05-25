@@ -1,9 +1,14 @@
+let cassetteData = [];
 let audioList = [];
+let activeAudioIndex = -1;
 
 
 async function updateAudioFiles() {
-    let cassetteData = await window.metadata.getCassetteData();
+    cassetteData = await window.metadata.getCassetteData();
     const audioListContainer = document.getElementById("songlist-container");
+
+
+    document.getElementById("audio-player-button").classList.remove('active');
 
     for (let i = 0; i < audioList.length; i++) {
         audioList[i].pause();
@@ -23,7 +28,7 @@ async function updateAudioFiles() {
 
         audioContainer.innerHTML = `
             <figure>
-                <div class="image-container" onclick="document.getElementById('song-container-${i}').classList.toggle('active'); setAudioState(${i});">
+                <div class="image-container" onclick="toggleAudio(${i});">
                     <img src="../cassetteAlbumCovers/${data.coverHash}.jpg" alt="${data.coverHash}"/>
                 </div>
                 <figcaption>
@@ -32,6 +37,11 @@ async function updateAudioFiles() {
                         <ul>${data.title}</ul>
                     </li>
                 </figcaption>
+                <div class="song-container-buttons">
+                    <button></button>
+                    <button></button>
+                    <button></button>
+                </div>
             </figure>
         `;
         audioListContainer.appendChild(audioContainer);
@@ -54,9 +64,16 @@ async function selectAudioFiles() {
 }
 
 
-function setAudioState(i) {
+async function setAudioState(i) {
+    const data = await cassetteData[i]
     const audio = audioList[i];
     const element = document.getElementById("song-container-" + i);
+    const audioPlayerButton = document.getElementById("audio-player-button");
+    const audioPlayerCover = document.getElementById("audio-player-cover");
+    const audioPlayerTitle = document.getElementById("audio-player-title");
+
+    audioPlayerCover.src = `../cassetteAlbumCovers/${(data.coverHash)}.jpg`;
+    audioPlayerTitle.innerHTML = `${data.artist} - ${data.title}`;
 
     for (let j = 0; j < audioList.length; j++) {
         if (j != i && audio.paused) {
@@ -73,8 +90,11 @@ function setAudioState(i) {
         audio.pause();
     };
 
+    updateSongTime();
+
     audio.addEventListener('ended', () => {
         element.classList.remove('active');
+        audioPlayerButton.classList.remove('active');
     });
 }
 
@@ -91,10 +111,49 @@ function searchAudio(searchInput) {
             }
             else {
                 element.classList.remove('searched')
-            }
+            };
         };
     };
 };
+
+function toggleAudio(i, usedAudioPlayer=false) {
+    activeAudioIndex = i;
+    const songContainerElement = document.getElementById('song-container-' + i);
+    const audioPlayerButton = document.getElementById('audio-player-button')
+    if (usedAudioPlayer) {
+        audioPlayerButton.classList.toggle('active');
+        if (audioPlayerButton.classList.contains('active')) {
+            songContainerElement.classList.add('active');
+        }
+        else {
+            songContainerElement.classList.remove('active');
+        };
+    }
+    else {
+        songContainerElement.classList.toggle('active');
+        if (songContainerElement.classList.contains('active')) {
+            audioPlayerButton.classList.add('active');
+        }
+        else {
+            audioPlayerButton.classList.remove('active');
+        };
+    };
+
+    setAudioState(i);
+};
+
+setInterval(updateSongTime, 1000);
+
+function updateSongTime() {
+    const audio = audioList[activeAudioIndex];
+    const audioTime = document.getElementById('audio-player-time');
+    const audioProgressBar = document.getElementById('audio-player-progress-level')
+    if (audio && !audio.paused) {
+        audioTime.innerHTML = `${Math.floor(audio.currentTime / 60)}:${String(Math.floor(audio.currentTime % 60)).padStart(2, '0')} | ${Math.floor(audio.duration / 60)}:${String(Math.floor(audio.duration % 60)).padStart(2, '0')}`;
+        audioProgressBar.style.width = (audio.currentTime / audio.duration * 100) + "%";
+        audioProgressBar.style.transition = "width 1s linear";
+    }
+}
 
 updateAudioFiles();
 
