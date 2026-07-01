@@ -8,7 +8,7 @@
 ## Phase 2: Core UI & Homepage TODOs
 - [x] Implement the scrollable list of uploaded songs.
 - [x] **TODO: Add feature drag and drop to list (for uploading songs)**.
-- [ ] Add the 3D cassette viewer.
+- [x] Add the 3D cassette viewer.
 - [x] **TODO: Make a loading screen to be shown when doing long processes** (like extracting song metadata).
 
 ## Phase 3: Configuration & Visuals TODOs

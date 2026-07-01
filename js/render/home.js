@@ -78,6 +78,12 @@ async function setAudioState(i) {
 
     audioPlayerCover.src = `../cassetteAlbumCovers/${(data.coverHash)}.jpg`;
     audioPlayerTitle.innerHTML = `${data.artist} - ${data.title}`;
+    
+    const cassette3dCover = document.getElementById("cassette-cover-image");
+    if (cassette3dCover) {
+        cassette3dCover.src = `../cassetteAlbumCovers/${(data.coverHash)}.jpg`;
+        cassette3dCover.style.display = 'block';
+    }
 
     for (let j = 0; j < audioList.length; j++) {
         if (j != i && audio.paused) {
@@ -220,3 +226,12 @@ function hideLoadingScreen() {
     if (loadingScreen) loadingScreen.style.display = 'none';
 }
 
+// 3D Cassette Viewer Mouse Tracking
+document.addEventListener('mousemove', (e) => {
+    const model = document.getElementById('cassette-3d-model');
+    if (model) {
+        const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+        const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+        model.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+    }
+});
