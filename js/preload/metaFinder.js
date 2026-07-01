@@ -29,19 +29,19 @@ function returnHash(filePath) {
 
 // Returns the title of audio
 async function audioTitle(audioPath) {
-  const cmd = `ffprobe -v error -show_entries format_tags=title -of default=nw=1:nk=1 "${audioPath}"`;
+  const cmd = `.\\ffmpeg\\ffprobe.exe -v error -show_entries format_tags=title -of default=nw=1:nk=1 "${audioPath}"`;
   return await runCommand(cmd)
 };
 
 // Returns the artist of audio
 async function audioArtist(audioPath) {
-  const cmd = `ffprobe -v error -show_entries format_tags=artist -of default=nw=1:nk=1 "${audioPath}"`;
+  const cmd = `.\\ffmpeg\\ffprobe.exe -v error -show_entries format_tags=artist -of default=nw=1:nk=1 "${audioPath}"`;
   return await runCommand(cmd)
 };
 
 // Returns the duration of audio
 async function audioDuration(audioPath) {
-  const cmd = `ffprobe -i "${audioPath}" -show_entries format=duration -v quiet -of csv="p=0"`;
+  const cmd = `.\\ffmpeg\\ffprobe.exe -i "${audioPath}" -show_entries format=duration -v quiet -of csv="p=0"`;
   return await runCommand(cmd)
 };
 
@@ -51,7 +51,7 @@ async function retrieveAudioCover(audioPath) {
   const tempCover = './temp/cover.jpg';
   fs.mkdir(coverFolderPath, { recursive: true });
 
-  const cmd = `ffmpeg -y -i "${audioPath}" -map 0:v:0 -an "${tempCover}"`;
+  const cmd = `.\\ffmpeg\\ffmpeg.exe -y -i "${audioPath}" -map 0:v:0 -an "${tempCover}"`;
   try {
     await runCommand(cmd);
   } catch {
@@ -66,7 +66,7 @@ async function retrieveAudioCover(audioPath) {
 
 // Converts audio to another file type
 async function convertAudio(audioPath, outputPath) {
-  const cmd = `ffmpeg -i "${audioPath}" -map 0:a -map_metadata -1 -ar 11025 "${outputPath}"`;
+  const cmd = `.\\ffmpeg\\ffmpeg.exe -i "${audioPath}" -map 0:a -map_metadata -1 -ar 11025 "${outputPath}"`;
   return await runCommand(cmd);
 }
 

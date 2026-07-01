@@ -56,11 +56,15 @@ async function updateAudioFiles() {
 
 async function selectAudioFiles() {
     const audioPaths = await window.filesystem.openFileDialog();
-    // creates an item in the cassettes folder for each file selected in the file dialog
-    for (const path of audioPaths) {
-        await window.metadata.initializeAudio(path);
+    if (audioPaths && audioPaths.length > 0) {
+        if (typeof showLoadingScreen === 'function') showLoadingScreen();
+        // creates an item in the cassettes folder for each file selected in the file dialog
+        for (const path of audioPaths) {
+            await window.metadata.initializeAudio(path);
+        }
+        await updateAudioFiles();
+        if (typeof hideLoadingScreen === 'function') hideLoadingScreen();
     }
-    await updateAudioFiles()
 }
 
 
@@ -161,3 +165,58 @@ const songSearchInput = document.getElementById("song-search");
 songSearchInput.addEventListener('input', (e) => {
     searchAudio(e.target.value);
 });
+
+// Drag and Drop Logic
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+if (dropZone && fileInput) {
+    dropZone.addEventListener('click', () => fileInput.click());
+    
+    fileInput.addEventListener('change', async (e) => {
+        handleFiles(e.target.files);
+    });
+    
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+    
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+    });
+    
+    dropZone.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+            handleFiles(e.dataTransfer.files);
+        }
+    });
+}
+
+async function handleFiles(files) {
+    showLoadingScreen();
+    const paths = Array.from(files).map(f => f.path).filter(Boolean);
+    if (paths.length > 0) {
+        for (const path of paths) {
+            if (window.metadata && window.metadata.initializeAudio) {
+                await window.metadata.initializeAudio(path);
+            }
+        }
+        await updateAudioFiles();
+    }
+    hideLoadingScreen();
+}
+
+function showLoadingScreen() {
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) loadingScreen.style.display = 'flex';
+}
+
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) loadingScreen.style.display = 'none';
+}
+

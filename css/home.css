@@ -134,3 +134,11 @@
     border-radius: 8px;
     aspect-ratio: 1;
 }
+.home-container { display: flex; height: 100%; }
+.list-section { flex: 1; display: flex; flex-direction: column; padding: 20px; }
+.viewer-section { flex: 1; display: flex; justify-content: center; align-items: center; border-left: 2px solid var(--accent-color); }
+.drop-zone { border: 2px dashed var(--accent-color); border-radius: 8px; padding: 30px; text-align: center; margin: 20px auto; width: 80%; cursor: pointer; background-color: var(--secondary-bg-color); transition: background-color 0.3s; }
+.drop-zone.dragover { background-color: var(--accent-color); color: var(--primary-bg-color); }
+.loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.8); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
+.spinner { border: 8px solid #f3f3f3; border-top: 8px solid var(--accent-color); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }

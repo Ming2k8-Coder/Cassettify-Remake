@@ -6,4 +6,114 @@
 
 .page.active {
     display: flex;
+}/* Config Page Styles */
+.config-container {
+    display: flex;
+    padding: 20px 40px;
+    gap: 50px;
+    height: 100%;
+}
+
+.config-left {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 50%;
+}
+
+.config-right {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    width: 50%;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group label {
+    font-size: 1.1em;
+}
+
+.form-group input[type="text"] {
+    padding: 8px;
+    background-color: #333;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 4px;
+    font-family: inherit;
+}
+
+.checkbox-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+#btn-select-music {
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1em;
+    width: 150px;
+}
+
+#btn-select-music:hover {
+    background-color: #45a049;
+}
+
+#selected-music-name {
+    font-style: italic;
+    color: #aaa;
+}
+
+.metadata-group {
+    text-align: center;
+    font-size: 1.2em;
+    min-height: 24px;
+}
+
+.cover-image-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    background-color: #222;
+    border: 2px dashed #666;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.cover-image-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.cover-overlay-text {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    text-align: center;
+    padding: 5px;
+    font-size: 0.9em;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.cover-image-container:hover .cover-overlay-text {
+    opacity: 1;
 }
