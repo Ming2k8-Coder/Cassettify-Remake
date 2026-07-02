@@ -5,7 +5,9 @@ const findBeats = require ('./beatFinder.js');
 contextBridge.exposeInMainWorld('metadata', {
   initializeAudio: (audioPath) => initializeAudio(audioPath),
   findBeats: (audioPath) => findBeats(audioPath),
-  getCassetteData: () => ipcRenderer.invoke('get-cassette-data')
+  getCassetteData: () => ipcRenderer.invoke('get-cassette-data'),
+  saveCassetteData: (uuid, data) => ipcRenderer.invoke('save-cassette-data', uuid, data),
+  extractPalette: (coverHash) => ipcRenderer.invoke('extract-palette', coverHash)
 });
 
 contextBridge.exposeInMainWorld('filesystem', {

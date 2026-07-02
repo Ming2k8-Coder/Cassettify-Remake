@@ -13,10 +13,10 @@
 
 ## Phase 3: Configuration & Visuals TODOs
 - [x] **TODO: Allow changing the cover image by clicking the album cover.** (UI Done)
-- [ ] Port configuration logic (Backend/IPC).
-- [ ] **TODO: Easier adjustment for cassette visuals, non-1:1 image support, rotation, color settings, stickers.**
-- [ ] **NEW:** Integrate `node-vibrant` for Smart Palette Extraction to auto-fill cassette and label colors based on the album art.
-- [ ] **NEW:** Enhance the 3D Viewer to reflect color, pattern, and J-card changes in real-time.
+- [x] Port configuration logic (Backend/IPC).
+- [x] **TODO: Easier adjustment for cassette visuals, non-1:1 image support, rotation, color settings, stickers.**
+- [x] **NEW:** Integrate `node-vibrant` for Smart Palette Extraction to auto-fill cassette and label colors based on the album art.
+- [x] **NEW:** Enhance the 3D Viewer to reflect color, pattern, and J-card changes in real-time.
 
 ## Phase 4: Track, Export, Settings TODOs
 - [ ] **TODO: BPM detection, ticker sound, waveform generation.**

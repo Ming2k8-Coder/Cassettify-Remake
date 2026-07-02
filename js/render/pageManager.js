@@ -10,5 +10,9 @@ function openPage(pageName) {
         };
         pageElement.classList.add("active")
         pageButtonElement.classList.add("active")
+        
+        if (pageName === 'visuals' && typeof window.loadVisualsPage === 'function') {
+            window.loadVisualsPage();
+        }
     }
 };

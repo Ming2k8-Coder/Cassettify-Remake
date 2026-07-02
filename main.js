@@ -54,6 +54,48 @@ ipcMain.handle('get-cassette-data', async () => {
   return cassetteDataList.sort((a, b) => a.artist.localeCompare(b.artist));
 });
 
+// Update cassette metadata in meta.json
+ipcMain.handle('save-cassette-data', async (event, uuid, updatedData) => {
+  const metaPath = path.join(__dirname, 'cassettes', uuid, 'meta.json');
+  try {
+    const rawData = await fs.readFile(metaPath, 'utf8');
+    let meta = JSON.parse(rawData);
+    
+    // Update fields
+    meta = { ...meta, ...updatedData };
+    
+    await fs.writeFile(metaPath, JSON.stringify(meta, null, 4));
+    return { success: true, meta: meta };
+  } catch (err) {
+    console.error(`Failed to update meta.json for ${uuid}:`, err);
+    return { success: false, error: err.message };
+  }
+});
+
+// Extract palette using node-vibrant
+const Vibrant = require('node-vibrant');
+ipcMain.handle('extract-palette', async (event, coverHash) => {
+  const imagePath = path.join(__dirname, 'cassetteAlbumCovers', `${coverHash}.jpg`);
+  try {
+    const palette = await Vibrant.from(imagePath).getPalette();
+    // Format the palette into hex strings
+    return {
+      success: true,
+      palette: {
+        Vibrant: palette.Vibrant ? palette.Vibrant.hex : null,
+        Muted: palette.Muted ? palette.Muted.hex : null,
+        DarkVibrant: palette.DarkVibrant ? palette.DarkVibrant.hex : null,
+        DarkMuted: palette.DarkMuted ? palette.DarkMuted.hex : null,
+        LightVibrant: palette.LightVibrant ? palette.LightVibrant.hex : null,
+        LightMuted: palette.LightMuted ? palette.LightMuted.hex : null,
+      }
+    };
+  } catch (err) {
+    console.error(`Failed to extract palette for ${coverHash}:`, err);
+    return { success: false, error: err.message };
+  }
+});
+
 // Start application
 app.whenReady().then(() => {
   ipcMain.handle('ping', () => 'pong');

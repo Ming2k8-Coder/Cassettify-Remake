@@ -39,7 +39,7 @@ async function updateAudioFiles() {
                 </figcaption>
                 <div class="song-container-buttons">
                     <button></button>
-                    <button></button>
+                    <button onclick="openConfigForCassette(${i})"></button>
                     <button></button>
                 </div>
             </figure>
@@ -151,6 +151,35 @@ function toggleAudio(i, usedAudioPlayer=false) {
 
     setAudioState(i);
 };
+
+function openConfigForCassette(i) {
+    const data = cassetteData[i];
+    openPage('config');
+    
+    // We update global state so config.js knows which one is selected
+    window.currentCassetteUUID = data.UUID;
+    
+    const titleInput = document.getElementById('song-title');
+    const authorInput = document.getElementById('song-author');
+    const coverImage = document.getElementById('cover-image');
+    
+    if (titleInput) titleInput.value = data.title;
+    if (authorInput) authorInput.value = data.artist;
+    if (coverImage) coverImage.src = `../cassetteAlbumCovers/${data.coverHash}.jpg`;
+
+    // Smart Palette Extraction (only run if we haven't already extracted colors for this cassette)
+    if (!data.colors && window.metadata.extractPalette) {
+        window.metadata.extractPalette(data.coverHash).then(result => {
+            if (result.success) {
+                console.log("Extracted Palette:", result.palette);
+                // Save it back to meta.json
+                data.colors = result.palette;
+                window.metadata.saveCassetteData(data.UUID, { colors: result.palette });
+                // We will use these colors in the Visuals page later!
+            }
+        });
+    }
+}
 
 setInterval(updateSongTime, 1000);
 
