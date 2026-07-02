@@ -15,8 +15,18 @@
 - [x] **TODO: Allow changing the cover image by clicking the album cover.** (UI Done)
 - [ ] Port configuration logic (Backend/IPC).
 - [ ] **TODO: Easier adjustment for cassette visuals, non-1:1 image support, rotation, color settings, stickers.**
+- [ ] **NEW:** Integrate `node-vibrant` for Smart Palette Extraction to auto-fill cassette and label colors based on the album art.
+- [ ] **NEW:** Enhance the 3D Viewer to reflect color, pattern, and J-card changes in real-time.
 
 ## Phase 4: Track, Export, Settings TODOs
 - [ ] **TODO: BPM detection, ticker sound, waveform generation.**
+- [ ] **NEW:** Build an Interactive Waveform Editor using `wavesurfer.js` with draggable beat markers and grid snapping.
+- [ ] **NEW:** Add Web Audio API beat tick previewer to test detection accuracy in-app.
+- [ ] **NEW:** Implement Constant BPM Mode (ArrowVortex style) & Global Offset calculation to prevent mid-song desyncs.
+- [ ] **NEW:** Add BPM Range Target Filter to prevent half-time/double-time detection errors.
 - [ ] **TODO: Export popup, checklist, multiple formats.**
 - [ ] **TODO: Settings page (themes, auto-actions, reset data).**
+
+## Phase 5: Core Performance Optimizations (NEW)
+- [ ] Implement Worker Threads for heavy algorithms (parsing beat arrays, generating waveforms) to ensure 60FPS UI.
+- [ ] Implement Non-blocking Audio Piping (Node.js Streams + fluent-ffmpeg) to build the `.robobeat` file in memory, reducing SSD wear and speeding up exports.

@@ -35,10 +35,21 @@ ipcMain.handle('open-file-dialog', async () => {
 // Read and return metadata from each cassette in the cassettes folder as a dictionary
 ipcMain.handle('get-cassette-data', async () => {
   const cassetteFolder = __dirname + '/cassettes/';
+  try {
+    await fs.access(cassetteFolder);
+  } catch {
+    return []; // Folder doesn't exist yet, return empty list
+  }
+  
   let cassetteList = await fs.readdir(cassetteFolder);
   let cassetteDataList = [];
   for (let i = 0; i < cassetteList.length; i++)  {
-    cassetteDataList.push(JSON.parse(await fs.readFile(cassetteFolder + cassetteList[i] + '/meta.json')));
+    try {
+        const meta = JSON.parse(await fs.readFile(cassetteFolder + cassetteList[i] + '/meta.json'));
+        cassetteDataList.push(meta);
+    } catch(err) {
+        // Skip folders without valid meta.json
+    }
   }
   return cassetteDataList.sort((a, b) => a.artist.localeCompare(b.artist));
 });
