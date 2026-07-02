@@ -7,9 +7,12 @@ contextBridge.exposeInMainWorld('metadata', {
   findBeats: (audioPath) => findBeats(audioPath),
   getCassetteData: () => ipcRenderer.invoke('get-cassette-data'),
   saveCassetteData: (uuid, data) => ipcRenderer.invoke('save-cassette-data', uuid, data),
-  extractPalette: (coverHash) => ipcRenderer.invoke('extract-palette', coverHash)
+  extractPalette: (coverHash) => ipcRenderer.invoke('extract-palette', coverHash),
+  getAudioBuffer: (audioPath) => ipcRenderer.invoke('get-audio-buffer', audioPath)
 });
 
 contextBridge.exposeInMainWorld('filesystem', {
-  openFileDialog: () => ipcRenderer.invoke('open-file-dialog')
+  openFileDialog: () => ipcRenderer.invoke('open-file-dialog'),
+  selectExportFolder: () => ipcRenderer.invoke('select-export-folder'),
+  exportCassette: (uuid, destFolder) => ipcRenderer.invoke('export-cassette', uuid, destFolder)
 });

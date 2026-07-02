@@ -19,13 +19,13 @@
 - [x] **NEW:** Enhance the 3D Viewer to reflect color, pattern, and J-card changes in real-time.
 
 ## Phase 4: Track, Export, Settings TODOs
-- [ ] **TODO: BPM detection, ticker sound, waveform generation.**
-- [ ] **NEW:** Build an Interactive Waveform Editor using `wavesurfer.js` with draggable beat markers and grid snapping.
-- [ ] **NEW:** Add Web Audio API beat tick previewer to test detection accuracy in-app.
-- [ ] **NEW:** Implement Constant BPM Mode (ArrowVortex style) & Global Offset calculation to prevent mid-song desyncs.
-- [ ] **NEW:** Add BPM Range Target Filter to prevent half-time/double-time detection errors.
-- [ ] **TODO: Export popup, checklist, multiple formats.**
-- [ ] **TODO: Settings page (themes, auto-actions, reset data).**
+- [x] **TODO: BPM detection, ticker sound, waveform generation.**
+- [x] **NEW:** Build an Interactive Waveform Editor using `wavesurfer.js` with draggable beat markers and grid snapping.
+- [x] **NEW:** Add Web Audio API beat tick previewer to test detection accuracy in-app.
+- [x] **NEW:** Implement Constant BPM Mode (ArrowVortex style) & Global Offset calculation to prevent mid-song desyncs.
+- [x] **NEW:** Add BPM Range Target Filter to prevent half-time/double-time detection errors.
+- [x] **TODO: Export popup, checklist, multiple formats.**
+- [x] **TODO: Settings page (themes, auto-actions, reset data).**
 
 ## Phase 5: Core Performance Optimizations (NEW)
 - [ ] Implement Worker Threads for heavy algorithms (parsing beat arrays, generating waveforms) to ensure 60FPS UI.

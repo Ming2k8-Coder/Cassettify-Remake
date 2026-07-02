@@ -14,5 +14,13 @@ function openPage(pageName) {
         if (pageName === 'visuals' && typeof window.loadVisualsPage === 'function') {
             window.loadVisualsPage();
         }
+        
+        if (pageName === 'track' && typeof window.loadTrackPage === 'function') {
+            window.loadTrackPage();
+        }
+        
+        if (pageName === 'export' && typeof window.loadExportPage === 'function') {
+            window.loadExportPage();
+        }
     }
 };

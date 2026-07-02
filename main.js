@@ -96,6 +96,130 @@ ipcMain.handle('extract-palette', async (event, coverHash) => {
   }
 });
 
+// Load audio file into a buffer
+ipcMain.handle('get-audio-buffer', async (event, audioPath) => {
+  try {
+    const fullPath = path.join(__dirname, audioPath);
+    const buffer = await fs.readFile(fullPath);
+    return { success: true, buffer: buffer };
+  } catch (err) {
+    console.error(`Failed to load audio buffer for ${audioPath}:`, err);
+    return { success: false, error: err.message };
+  }
+});
+
+// Export cassette as .robobeat file
+const { execFile } = require('node:child_process');
+const crypto = require('node:crypto');
+ipcMain.handle('export-cassette', async (event, uuid, destFolder) => {
+  try {
+    const metaPath = path.join(__dirname, 'cassettes', uuid, 'meta.json');
+    const meta = JSON.parse(await fs.readFile(metaPath, 'utf8'));
+    
+    const internalName = 'cassettify_' + crypto.randomBytes(15).toString('hex');
+    const tempFolder = path.join(__dirname, 'temp_export', internalName);
+    await fs.mkdir(tempFolder, { recursive: true });
+    
+    // 1. Copy audio file
+    const originalAudioDir = path.join(__dirname, 'cassettes', uuid, 'originalAudio');
+    const audioFiles = await fs.readdir(originalAudioDir);
+    const audioFile = audioFiles[0];
+    const audioExt = path.extname(audioFile);
+    const exportedSoundFilename = internalName + '_audio' + audioExt;
+    await fs.copyFile(path.join(originalAudioDir, audioFile), path.join(tempFolder, exportedSoundFilename));
+    
+    // 2. Copy album cover
+    const coverHash = meta.coverHash;
+    if (coverHash) {
+      const coverSrc = path.join(__dirname, 'cassetteAlbumCovers', coverHash + '.jpg');
+      try {
+        await fs.copyFile(coverSrc, path.join(tempFolder, internalName + '.jpg'));
+      } catch {}
+    }
+    
+    // 3. Build config object (mirrors cassetteConfigP2.json)
+    const beats = meta.beats || [];
+    const floatBeats = beats.map(b => parseFloat(b));
+    const startTime = floatBeats.length > 0 ? floatBeats[0] : 0;
+    const endTime = floatBeats.length > 0 ? floatBeats[floatBeats.length - 1] : (parseFloat(meta.duration) || 0);
+    
+    const visuals = meta.visuals || {};
+    const color = visuals.CassetteColor || { r: 1, g: 1, b: 1, a: 1 };
+    
+    const configObj = {
+      File: {
+        InternalName: internalName,
+        Info: {
+          PathToAudioClip: `${process.env.USERPROFILE.replace(/\\/g, '/')}/AppData/LocalLow/Inzanity/ROBOBEAT/cassette_audio/${exportedSoundFilename}`,
+          InStorage: true,
+          FileName: exportedSoundFilename,
+          LengthOfClip: parseFloat(meta.duration) || 0,
+          PublicName: meta.title || 'Unknown Title',
+          ArtistName: meta.artist || 'Unknown Artist',
+          BPM: 0
+        },
+        Beat: {
+          StartTime: startTime,
+          EndTime: endTime,
+          VolumeOffset: 0.0,
+          NumberOfBeats: floatBeats.length,
+          Beats: floatBeats
+        },
+        Visuals: {
+          CassetteTextureInternalName: visuals.CassetteTextureInternalName || 'DEFAULT',
+          CassetteColor: { r: color.r || 1, g: color.g || 1, b: color.b || 1, a: 1.0 },
+          CassetteStrength: 1.0,
+          IsCustomTexture: false
+        },
+        IsMixTape: false
+      },
+      InternalName: internalName
+    };
+    
+    // 4. Prepend the P1 header then write the .cassette file
+    const p1 = '{\n    "Main": 5,\n    "Secondary": 8\n}';
+    let configStr = p1 + JSON.stringify(configObj, null, 4);
+    // Convert to Unix line endings (same as ROBOBEAT)
+    configStr = configStr.replace(/\r\n/g, '\n');
+    const cassettePath = path.join(tempFolder, internalName + '.cassette');
+    await fs.writeFile(cassettePath, configStr, 'utf8');
+    
+    // 5. Zip the temp folder -> rename to .robobeat
+    const safeTitle = (meta.title || 'cassette').replace(/[^a-z0-9_\-\s]/gi, '_');
+    const outputZip = path.join(destFolder, safeTitle + '.robobeat.zip');
+    const outputFile = path.join(destFolder, safeTitle + '.robobeat');
+    
+    // Use PowerShell to zip on Windows
+    await new Promise((resolve, reject) => {
+      const ps = require('node:child_process').exec(
+        `powershell Compress-Archive -Path "${tempFolder}\\*" -DestinationPath "${outputZip}" -Force`,
+        (err) => err ? reject(err) : resolve()
+      );
+    });
+    
+    // Rename .zip -> .robobeat
+    try { await fs.unlink(outputFile); } catch {}
+    await fs.rename(outputZip, outputFile);
+    
+    // Cleanup temp
+    await fs.rm(tempFolder, { recursive: true, force: true });
+    
+    return { success: true, outputFile };
+  } catch (err) {
+    console.error('Export failed:', err);
+    return { success: false, error: err.message };
+  }
+});
+
+// Open a folder-select dialog for export destination
+ipcMain.handle('select-export-folder', async () => {
+  const result = await dialog.showOpenDialog(BrowserWindow.getAllWindows()[0], {
+    properties: ['openDirectory'],
+    title: 'Select Export Destination'
+  });
+  return result.canceled ? null : result.filePaths[0];
+});
+
 // Start application
 app.whenReady().then(() => {
   ipcMain.handle('ping', () => 'pong');
