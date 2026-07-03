@@ -11,12 +11,12 @@ $(function () {
         if (wavesurfer) return;
 
         // Regions plugin for beat markers
-        regionsPlugin = WaveSurferRegions.create({
+        regionsPlugin = WaveSurfer.Regions.create({
             dragSelection: false
         });
 
         // Timeline plugin
-        const timelinePlugin = WaveSurferTimeline.create({
+        const timelinePlugin = WaveSurfer.Timeline.create({
             container: '#waveform-timeline',
             primaryLabelSpacing: 10,
             secondaryLabelOpacity: 0.3,

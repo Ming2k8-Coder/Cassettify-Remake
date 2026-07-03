@@ -22,15 +22,37 @@ const createWindow = () => {
 
 // Handle getting audio files and return only their paths
 ipcMain.handle('open-file-dialog', async () => {
-  const audioFiles = await dialog.showOpenDialog(win, {
+  const audioFiles = await dialog.showOpenDialog(BrowserWindow.getAllWindows()[0], {
     properties: ['openFile', 'multiSelections'],
-    filters: [{ name: 'Audio', extensions: ['mp3', 'ogg', 'wav', 'flac'] }]
+    filters: [{
+      name: 'Audio / Video',
+      extensions: ['mp3', 'ogg', 'wav', 'flac', 'm4a', 'aac', 'opus', 'mp4', 'm4v', 'webm', 'mkv', 'avi', 'mov']
+    }]
   });
 
   if (audioFiles.canceled) return [];
 
   return audioFiles.filePaths;
 });
+
+// Re-extract video cover at a user-specified timestamp (for webm/mp4)
+const { retrieveAudioCover } = require('./js/preload/metaFinder');
+ipcMain.handle('reextract-cover', async (event, uuid, originalFilePath, frameTimeSec) => {
+  try {
+    const coverHash = await retrieveAudioCover(originalFilePath, frameTimeSec);
+    if (!coverHash) return { success: false, error: 'No frame extracted' };
+    // Update meta.json with the new coverHash and frameTimeSec
+    const metaPath = path.join(__dirname, 'cassettes', uuid, 'meta.json');
+    const meta = JSON.parse(await fs.readFile(metaPath, 'utf8'));
+    meta.coverHash = coverHash;
+    meta.frameTimeSec = frameTimeSec;
+    await fs.writeFile(metaPath, JSON.stringify(meta, null, 2));
+    return { success: true, coverHash };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
 
 // Read and return metadata from each cassette in the cassettes folder as a dictionary
 ipcMain.handle('get-cassette-data', async () => {
@@ -51,7 +73,7 @@ ipcMain.handle('get-cassette-data', async () => {
         // Skip folders without valid meta.json
     }
   }
-  return cassetteDataList.sort((a, b) => a.artist.localeCompare(b.artist));
+  return cassetteDataList.sort((a, b) => (a.artist || '').localeCompare(b.artist || ''));
 });
 
 // Update cassette metadata in meta.json
@@ -73,7 +95,7 @@ ipcMain.handle('save-cassette-data', async (event, uuid, updatedData) => {
 });
 
 // Extract palette using node-vibrant
-const Vibrant = require('node-vibrant');
+const { Vibrant } = require('node-vibrant/node');
 ipcMain.handle('extract-palette', async (event, coverHash) => {
   const imagePath = path.join(__dirname, 'cassetteAlbumCovers', `${coverHash}.jpg`);
   try {

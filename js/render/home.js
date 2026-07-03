@@ -26,10 +26,14 @@ async function updateAudioFiles() {
         const audio = new Audio(`../cassettes/${data.UUID}/originalAudio/${data.filename}`);
         audioList[i] = audio;
 
+        const coverSrc = data.coverHash 
+            ? `../cassetteAlbumCovers/${data.coverHash}.jpg` 
+            : '../images_original/SmallCustomCassetteTemplate.png';
+
         audioContainer.innerHTML = `
             <figure>
                 <div class="image-container" onclick="toggleAudio(${i});">
-                    <img src="../cassetteAlbumCovers/${data.coverHash}.jpg" alt="${data.coverHash}"/>
+                    <img src="${coverSrc}" alt="cover"/>
                 </div>
                 <figcaption>
                     <li>
@@ -57,13 +61,7 @@ async function updateAudioFiles() {
 async function selectAudioFiles() {
     const audioPaths = await window.filesystem.openFileDialog();
     if (audioPaths && audioPaths.length > 0) {
-        if (typeof showLoadingScreen === 'function') showLoadingScreen();
-        // creates an item in the cassettes folder for each file selected in the file dialog
-        for (const path of audioPaths) {
-            await window.metadata.initializeAudio(path);
-        }
-        await updateAudioFiles();
-        if (typeof hideLoadingScreen === 'function') hideLoadingScreen();
+        await handlePaths(audioPaths);
     }
 }
 
@@ -76,12 +74,16 @@ async function setAudioState(i) {
     const audioPlayerCover = document.getElementById("audio-player-cover");
     const audioPlayerTitle = document.getElementById("audio-player-title");
 
-    audioPlayerCover.src = `../cassetteAlbumCovers/${(data.coverHash)}.jpg`;
-    audioPlayerTitle.innerHTML = `${data.artist} - ${data.title}`;
-    
+    const coverSrc = data.coverHash 
+        ? `../cassetteAlbumCovers/${data.coverHash}.jpg` 
+        : '../images_original/SmallCustomCassetteTemplate.png';
+        
+    audioPlayerCover.src = coverSrc;
+    audioPlayerTitle.innerHTML = `${data.artist || 'Unknown'} - ${data.title || 'Unknown'}`;
+
     const cassette3dCover = document.getElementById("cassette-cover-image");
     if (cassette3dCover) {
-        cassette3dCover.src = `../cassetteAlbumCovers/${(data.coverHash)}.jpg`;
+        cassette3dCover.src = coverSrc;
         cassette3dCover.style.display = 'block';
     }
 
@@ -89,22 +91,32 @@ async function setAudioState(i) {
         if (j != i && audio.paused) {
             audioList[j].pause();
             audioList[j].currentTime = 0;
-            document.getElementById("song-container-" + j).classList.remove('active');
-        };
-    };
-
-    if (element.classList.contains('active')) {
-        audio.play();
+            const otherElement = document.getElementById("song-container-" + j);
+            if (otherElement) otherElement.classList.remove('active');
+        }
     }
-    else {
-        audio.pause();
-    };
+
+    if (element) {
+        if (element.classList.contains('active')) {
+            audio.play();
+        } else {
+            audio.pause();
+        }
+    } else {
+        // If element doesn't exist but we want to play (e.g. from bottom bar)
+        const audioPlayerBtn = document.getElementById("audio-player-button");
+        if (audioPlayerBtn && audioPlayerBtn.classList.contains('active')) {
+            audio.play();
+        } else {
+            audio.pause();
+        }
+    }
 
     updateSongTime();
 
     audio.addEventListener('ended', () => {
-        element.classList.remove('active');
-        audioPlayerButton.classList.remove('active');
+        if (element) element.classList.remove('active');
+        if (audioPlayerButton) audioPlayerButton.classList.remove('active');
     });
 }
 
@@ -126,128 +138,62 @@ function searchAudio(searchInput) {
     };
 };
 
-function toggleAudio(i, usedAudioPlayer=false) {
+function toggleAudio(i, usedAudioPlayer = false) {
     activeAudioIndex = i;
     const songContainerElement = document.getElementById('song-container-' + i);
-    const audioPlayerButton = document.getElementById('audio-player-button')
+    const audioPlayerButton = document.getElementById('audio-player-button');
+    
     if (usedAudioPlayer) {
-        audioPlayerButton.classList.toggle('active');
-        if (audioPlayerButton.classList.contains('active')) {
-            songContainerElement.classList.add('active');
+        if (audioPlayerButton) audioPlayerButton.classList.toggle('active');
+        if (songContainerElement) {
+            if (audioPlayerButton && audioPlayerButton.classList.contains('active')) {
+                songContainerElement.classList.add('active');
+            } else {
+                songContainerElement.classList.remove('active');
+            }
         }
-        else {
-            songContainerElement.classList.remove('active');
-        };
+    } else {
+        if (songContainerElement) songContainerElement.classList.toggle('active');
+        if (audioPlayerButton) {
+            if (songContainerElement && songContainerElement.classList.contains('active')) {
+                audioPlayerButton.classList.add('active');
+            } else {
+                audioPlayerButton.classList.remove('active');
+            }
+        }
     }
-    else {
-        songContainerElement.classList.toggle('active');
-        if (songContainerElement.classList.contains('active')) {
-            audioPlayerButton.classList.add('active');
-        }
-        else {
-            audioPlayerButton.classList.remove('active');
-        };
-    };
 
     setAudioState(i);
-};
+}
 
 function openConfigForCassette(i) {
     const data = cassetteData[i];
-    openPage('config');
-    
-    // We update global state so config.js knows which one is selected
     window.currentCassetteUUID = data.UUID;
-    
-    const titleInput = document.getElementById('song-title');
-    const authorInput = document.getElementById('song-author');
-    const coverImage = document.getElementById('cover-image');
-    
-    if (titleInput) titleInput.value = data.title;
-    if (authorInput) authorInput.value = data.artist;
-    if (coverImage) coverImage.src = `../cassetteAlbumCovers/${data.coverHash}.jpg`;
+    window.cassetteData = cassetteData; // keep global reference up to date
+
+    openPage('config');
+
+    // config.js listens for this after the page is loaded
+    if (typeof window.refreshConfigPage === 'function') {
+        window.refreshConfigPage();
+    }
 
     // Smart Palette Extraction (only run if we haven't already extracted colors for this cassette)
-    if (!data.colors && window.metadata.extractPalette) {
+    if (!data.colors && window.metadata.extractPalette && data.coverHash) {
         window.metadata.extractPalette(data.coverHash).then(result => {
             if (result.success) {
-                console.log("Extracted Palette:", result.palette);
-                // Save it back to meta.json
                 data.colors = result.palette;
                 window.metadata.saveCassetteData(data.UUID, { colors: result.palette });
-                // We will use these colors in the Visuals page later!
             }
         });
     }
 }
 
-setInterval(updateSongTime, 1000);
-
-function updateSongTime() {
-    const audio = audioList[activeAudioIndex];
-    const audioTime = document.getElementById('audio-player-time');
-    const audioProgressBar = document.getElementById('audio-player-progress-level')
-    if (audio && !audio.paused) {
-        audioTime.innerHTML = `${Math.floor(audio.currentTime / 60)}:${String(Math.floor(audio.currentTime % 60)).padStart(2, '0')} | ${Math.floor(audio.duration / 60)}:${String(Math.floor(audio.duration % 60)).padStart(2, '0')}`;
-        audioProgressBar.style.width = (audio.currentTime / audio.duration * 100) + "%";
-        audioProgressBar.style.transition = "width 1s linear";
-    }
-}
-
-updateAudioFiles();
-
-const songSearchInput = document.getElementById("song-search");
-songSearchInput.addEventListener('input', (e) => {
-    searchAudio(e.target.value);
-});
-
-// Drag and Drop Logic
-const dropZone = document.getElementById('drop-zone');
-const fileInput = document.getElementById('file-input');
-
-if (dropZone && fileInput) {
-    dropZone.addEventListener('click', () => fileInput.click());
-    
-    fileInput.addEventListener('change', async (e) => {
-        handleFiles(e.target.files);
-    });
-    
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.classList.add('dragover');
-    });
-    
-    dropZone.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
-    });
-    
-    dropZone.addEventListener('drop', async (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
-        if (e.dataTransfer.files.length) {
-            handleFiles(e.dataTransfer.files);
-        }
-    });
-}
-
-async function handleFiles(files) {
-    showLoadingScreen();
-    const paths = Array.from(files).map(f => f.path).filter(Boolean);
-    if (paths.length > 0) {
-        for (const path of paths) {
-            if (window.metadata && window.metadata.initializeAudio) {
-                await window.metadata.initializeAudio(path);
-            }
-        }
-        await updateAudioFiles();
-    }
-    hideLoadingScreen();
-}
-
-function showLoadingScreen() {
+function showLoadingScreen(msg = 'Processing...') {
     const loadingScreen = document.getElementById('loading-screen');
+    const loadingText = document.getElementById('loading-text');
     if (loadingScreen) loadingScreen.style.display = 'flex';
+    if (loadingText) loadingText.textContent = msg;
 }
 
 function hideLoadingScreen() {
@@ -255,12 +201,116 @@ function hideLoadingScreen() {
     if (loadingScreen) loadingScreen.style.display = 'none';
 }
 
-// 3D Cassette Viewer Mouse Tracking
-document.addEventListener('mousemove', (e) => {
-    const model = document.getElementById('cassette-3d-model');
-    if (model) {
-        const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
-        const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
-        model.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+function updateSongTime() {
+    const audio = audioList[activeAudioIndex];
+    const audioTime = document.getElementById('audio-player-time');
+    const audioProgressBar = document.getElementById('audio-player-progress-level');
+    if (audio && !audio.paused) {
+        audioTime.innerHTML = `${Math.floor(audio.currentTime / 60)}:${String(Math.floor(audio.currentTime % 60)).padStart(2, '0')} | ${Math.floor(audio.duration / 60)}:${String(Math.floor(audio.duration % 60)).padStart(2, '0')}`;
+        audioProgressBar.style.width = (audio.currentTime / audio.duration * 100) + "%";
+        audioProgressBar.style.transition = "width 1s linear";
     }
-});
+}
+
+async function handlePaths(allPaths) {
+    console.log('[handlePaths] valid paths to process:', allPaths);
+
+    if (!allPaths || allPaths.length === 0) {
+        console.warn('[handlePaths] No paths found.');
+        return;
+    }
+
+    showLoadingScreen(`Processing 0 / ${allPaths.length}...`);
+    let done = 0;
+    const errors = [];
+
+    for (const filePath of allPaths) {
+        console.log(`[handlePaths] Processing (${done + 1}/${allPaths.length}):`, filePath);
+        try {
+            if (window.metadata && window.metadata.initializeAudio) {
+                await window.metadata.initializeAudio(filePath);
+                console.log(`[handlePaths] ✅ Done:`, filePath);
+            }
+        } catch (err) {
+            const name = filePath.replace(/\\/g, '/').split('/').pop();
+            console.error(`[handlePaths] ❌ Failed:`, filePath, err);
+            errors.push(`${name}: ${err.message || err}`);
+        }
+        done++;
+        showLoadingScreen(`Processing ${done} / ${allPaths.length}...`);
+    }
+
+    await updateAudioFiles();
+    hideLoadingScreen();
+
+    if (errors.length > 0) {
+        alert(`${errors.length} file(s) failed to import:\n${errors.slice(0, 5).join('\n')}`);
+    }
+}
+
+// Called by index.html after all fragments are injected into the DOM
+window.initHomePage = function () {
+    console.log('[home.js] initHomePage called');
+
+    // Start the audio time updater
+    setInterval(updateSongTime, 1000);
+
+    // Load existing cassettes
+    updateAudioFiles();
+
+    // Search
+    const songSearchInput = document.getElementById('song-search-input');
+    if (songSearchInput) {
+        songSearchInput.addEventListener('input', (e) => searchAudio(e.target.value));
+    }
+
+    // Drag and Drop Logic
+    const dropZone = document.getElementById('drop-zone');
+
+    if (dropZone) {
+        console.log('[DropZone] drop zone found — attaching listeners');
+
+        dropZone.addEventListener('click', async () => {
+            console.log('[DropZone] clicked — opening native file picker');
+            await selectAudioFiles();
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            console.log('[DropZone] drop event, files:', e.dataTransfer.files.length);
+            if (e.dataTransfer.files.length) {
+                const paths = Array.from(e.dataTransfer.files).map(f => f.path).filter(Boolean);
+                if (paths.length > 0) {
+                    await handlePaths(paths);
+                } else {
+                    alert('Could not read dropped file paths. Web security may be blocking it. Please use click instead.');
+                }
+            } else {
+                console.warn('[DropZone] drop event fired but no files in dataTransfer');
+            }
+        });
+    } else {
+        console.error('[DropZone] MISSING ELEMENTS — dropZone:', !!dropZone);
+    }
+
+    // 3D Cassette Viewer Mouse Tracking
+    document.addEventListener('mousemove', (e) => {
+        const model = document.getElementById('cassette-3d-model');
+        if (model) {
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+            model.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+        }
+    });
+};

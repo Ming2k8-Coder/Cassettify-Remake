@@ -30,3 +30,17 @@
 ## Phase 5: Core Performance Optimizations (NEW)
 - [ ] Implement Worker Threads for heavy algorithms (parsing beat arrays, generating waveforms) to ensure 60FPS UI.
 - [ ] Implement Non-blocking Audio Piping (Node.js Streams + fluent-ffmpeg) to build the `.robobeat` file in memory, reducing SSD wear and speeding up exports.
+
+## Phase Bug: Bug Fixes & UX Polish (Newly Reported)
+- [ ] **Home Page Fixes:**
+  - [ ] Fix div failure/text overflow for long file names in song lists and the bottom bar.
+  - [ ] Fix the Home 3D cassette view rendering oversize.
+- [ ] **Config & Visuals:**
+  - [ ] Fix config page failing to properly load the file imported/selected from the home tab.
+  - [ ] Overhaul Visuals page: remove/move the "change cover" option from Config over to Visuals.
+  - [ ] Implement the Visuals features from TODO.md (easier adjustment, support non-1:1 images, rotation, color setting, stickers, apply global position settings).
+- [ ] **Track Page:**
+  - [ ] Fix track page failing to select the active file.
+  - [ ] Add visual and audio beat indicators (metronome/gunshot/etc. that are configurable).
+- [ ] **Global UI:**
+  - [ ] Remove the bottom music player bar (overlaps with functionality in the Track tab).

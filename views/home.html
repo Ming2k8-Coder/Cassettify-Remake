@@ -2,7 +2,6 @@
 <html>
     <head>
         <link rel="stylesheet" href="../css/home.css">
-        <script src="../js/render/home.js"></script>
     </head>
     <body>
         <div class="home-container">
@@ -15,8 +14,7 @@
                 <div id="drop-zone" class="drop-zone">
                     <span>Drag and drop audio files here or click to select</span>
                     <button id="file-select" style="display: none;">Select Files</button>
-                    <!-- Hidden file input for clicking the drop zone -->
-                    <input type="file" id="file-input" multiple accept="audio/mp3, audio/ogg, audio/wav, audio/flac" style="display: none;">
+                    <!-- Click now triggers native OS file picker via IPC -->
                 </div>
 
                 <div id="songlist-container" class="scrollable-list">

@@ -15,6 +15,10 @@ function openPage(pageName) {
             window.loadVisualsPage();
         }
         
+        if (pageName === 'config' && typeof window.refreshConfigPage === 'function') {
+            window.refreshConfigPage();
+        }
+        
         if (pageName === 'track' && typeof window.loadTrackPage === 'function') {
             window.loadTrackPage();
         }
