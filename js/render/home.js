@@ -7,9 +7,6 @@ async function updateAudioFiles() {
     cassetteData = await window.metadata.getCassetteData();
     const audioListContainer = document.getElementById("songlist-container");
 
-
-    document.getElementById("audio-player-button").classList.remove('active');
-
     for (let i = 0; i < audioList.length; i++) {
         audioList[i].pause();
         audioList[i].currentTime = 0;
@@ -68,19 +65,16 @@ async function selectAudioFiles() {
 
 async function setAudioState(i) {
     const data = await cassetteData[i]
+    window.currentCassetteUUID = data.UUID;
+    window.cassetteData = cassetteData;
+
     const audio = audioList[i];
     const element = document.getElementById("song-container-" + i);
-    const audioPlayerButton = document.getElementById("audio-player-button");
-    const audioPlayerCover = document.getElementById("audio-player-cover");
-    const audioPlayerTitle = document.getElementById("audio-player-title");
 
     const coverSrc = data.coverHash 
         ? `../cassetteAlbumCovers/${data.coverHash}.jpg` 
         : '../images_original/SmallCustomCassetteTemplate.png';
         
-    audioPlayerCover.src = coverSrc;
-    audioPlayerTitle.innerHTML = `${data.artist || 'Unknown'} - ${data.title || 'Unknown'}`;
-
     const cassette3dCover = document.getElementById("cassette-cover-image");
     if (cassette3dCover) {
         cassette3dCover.src = coverSrc;
@@ -102,21 +96,10 @@ async function setAudioState(i) {
         } else {
             audio.pause();
         }
-    } else {
-        // If element doesn't exist but we want to play (e.g. from bottom bar)
-        const audioPlayerBtn = document.getElementById("audio-player-button");
-        if (audioPlayerBtn && audioPlayerBtn.classList.contains('active')) {
-            audio.play();
-        } else {
-            audio.pause();
-        }
     }
-
-    updateSongTime();
 
     audio.addEventListener('ended', () => {
         if (element) element.classList.remove('active');
-        if (audioPlayerButton) audioPlayerButton.classList.remove('active');
     });
 }
 
@@ -141,26 +124,9 @@ function searchAudio(searchInput) {
 function toggleAudio(i, usedAudioPlayer = false) {
     activeAudioIndex = i;
     const songContainerElement = document.getElementById('song-container-' + i);
-    const audioPlayerButton = document.getElementById('audio-player-button');
     
-    if (usedAudioPlayer) {
-        if (audioPlayerButton) audioPlayerButton.classList.toggle('active');
-        if (songContainerElement) {
-            if (audioPlayerButton && audioPlayerButton.classList.contains('active')) {
-                songContainerElement.classList.add('active');
-            } else {
-                songContainerElement.classList.remove('active');
-            }
-        }
-    } else {
-        if (songContainerElement) songContainerElement.classList.toggle('active');
-        if (audioPlayerButton) {
-            if (songContainerElement && songContainerElement.classList.contains('active')) {
-                audioPlayerButton.classList.add('active');
-            } else {
-                audioPlayerButton.classList.remove('active');
-            }
-        }
+    if (songContainerElement) {
+        songContainerElement.classList.toggle('active');
     }
 
     setAudioState(i);
@@ -201,16 +167,7 @@ function hideLoadingScreen() {
     if (loadingScreen) loadingScreen.style.display = 'none';
 }
 
-function updateSongTime() {
-    const audio = audioList[activeAudioIndex];
-    const audioTime = document.getElementById('audio-player-time');
-    const audioProgressBar = document.getElementById('audio-player-progress-level');
-    if (audio && !audio.paused) {
-        audioTime.innerHTML = `${Math.floor(audio.currentTime / 60)}:${String(Math.floor(audio.currentTime % 60)).padStart(2, '0')} | ${Math.floor(audio.duration / 60)}:${String(Math.floor(audio.duration % 60)).padStart(2, '0')}`;
-        audioProgressBar.style.width = (audio.currentTime / audio.duration * 100) + "%";
-        audioProgressBar.style.transition = "width 1s linear";
-    }
-}
+
 
 async function handlePaths(allPaths) {
     console.log('[handlePaths] valid paths to process:', allPaths);
@@ -251,9 +208,6 @@ async function handlePaths(allPaths) {
 // Called by index.html after all fragments are injected into the DOM
 window.initHomePage = function () {
     console.log('[home.js] initHomePage called');
-
-    // Start the audio time updater
-    setInterval(updateSongTime, 1000);
 
     // Load existing cassettes
     updateAudioFiles();

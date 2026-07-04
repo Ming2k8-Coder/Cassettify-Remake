@@ -105,6 +105,13 @@ async function convertAudio(audioPath, outputPath) {
   return await runCommand(cmd, true);
 }
 
+// Convert media to high-quality OGG for the final export
+async function convertAudioToHighQualityOgg(audioPath, outputPath) {
+  // -q:a 5 gives good VBR quality (approx 160kbps), -ar 44100 ensures a standard sample rate
+  const cmd = `.\\ffmpeg\\ffmpeg.exe -y -i "${audioPath}" -map 0:a:0 -q:a 5 -ar 44100 "${outputPath}"`;
+  return await runCommand(cmd, true);
+}
+
 // ────────────────────────────────────────────────────────────────
 // Main entry point: initialise a single media file into the cassettes folder
 // Accepts an optional frameTimeSec for video cover thumbnail extraction
@@ -124,7 +131,8 @@ module.exports = async function initializeAudio(audioPath, frameTimeSec = 0) {
   console.log('[metaFinder] ext:', ext, '| isVideo:', isVideo);
 
   const audioMeta = {};
-  audioMeta.filename    = path.basename(audioPath);
+  // Always use OGG as the standardized final audio format
+  audioMeta.filename    = 'audio.ogg';
   audioMeta.UUID        = songUUID;
   audioMeta.isVideo     = isVideo;
   audioMeta.frameTimeSec = isVideo ? frameTimeSec : undefined;
@@ -142,10 +150,11 @@ module.exports = async function initializeAudio(audioPath, frameTimeSec = 0) {
   const audioMetaStr = JSON.stringify(audioMeta, null, 2);
   await fs.writeFile(folderPath + 'meta.json', audioMetaStr);
 
-  console.log('[metaFinder] converting audio to OGG...');
+  console.log('[metaFinder] converting audio to OGG (preview)...');
   await convertAudio(audioPath, folderPath + 'song.ogg');
-  console.log('[metaFinder] copying original file...');
-  await fs.copyFile(audioPath, folderPath + 'originalAudio/' + path.basename(audioPath));
+  
+  console.log('[metaFinder] converting original to high-quality OGG (final)...');
+  await convertAudioToHighQualityOgg(audioPath, folderPath + 'originalAudio/audio.ogg');
 
   await fs.rm(tempPath, { recursive: true, force: true });
   console.log('[metaFinder] initializeAudio DONE:', songUUID);

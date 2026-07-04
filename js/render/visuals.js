@@ -4,6 +4,13 @@ $(function() {
     const $patternSelect = $('#pattern-select');
     const $palettePreview = $('#palette-preview');
     const $previewCassette = $('#preview-cassette-template');
+
+    const $coverImage = $('#cover-image');
+    const $coverImageContainer = $('#cover-image-container');
+    const $fileCustomCover = $('#file-custom-cover');
+    const $videoFramePicker = $('#video-frame-picker');
+    const $frameTimeInput = $('#frame-time-input');
+    const $btnExtractFrame = $('#btn-extract-frame');
     
     // We can simulate a color tint by wrapping the image in a container with a background color and mix-blend-mode
     // Wait, since we can't easily tint an image directly without complex filters, 
@@ -57,6 +64,52 @@ $(function() {
     $labelColor.on('input', () => { applyPreviewTint(); saveVisuals(); });
     $patternSelect.on('change', saveVisuals);
 
+    // ── Custom cover image via click ───────────────────────────────
+    $coverImageContainer.on('click', () => $fileCustomCover.trigger('click'));
+
+    $fileCustomCover.on('change', async function(e) {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = async function(ev) {
+                $coverImage.attr('src', ev.target.result);
+                // We'd need a backend call to properly process and save the custom cover, 
+                // but setting src gives immediate feedback.
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+
+    // ── Video frame picker ─────────────────────────────────────────
+    $btnExtractFrame.on('click', async () => {
+        if (!window.currentCassetteUUID) return;
+
+        const data = window.cassetteData?.find(c => c.UUID === window.currentCassetteUUID);
+        if (!data) return;
+
+        const frameTimeSec = parseFloat($frameTimeInput.val() || 0);
+        // Build the original audio path
+        const originalFilePath = `cassettes/${data.UUID}/originalAudio/${data.filename}`;
+
+        $btnExtractFrame.prop('disabled', true).text('Extracting…');
+
+        const result = await window.metadata.reextractCover(
+            window.currentCassetteUUID,
+            originalFilePath,
+            frameTimeSec
+        );
+
+        if (result && result.success) {
+            // Update the cover image preview with a cache-busting query
+            $coverImage.attr('src', `../cassetteAlbumCovers/${result.coverHash}.jpg?t=${Date.now()}`);
+            // Keep in-memory data up to date
+            if (data) data.coverHash = result.coverHash;
+        } else {
+            alert('Could not extract frame: ' + (result?.error || 'Unknown error'));
+        }
+
+        $btnExtractFrame.prop('disabled', false).text('Extract Frame');
+    });
+
     // This function can be called when switching to the visuals page
     window.loadVisualsPage = function() {
         if (!window.currentCassetteUUID) return;
@@ -69,6 +122,19 @@ $(function() {
         }
         if (data && data.visuals) {
             $patternSelect.val(data.visuals.CassetteTextureInternalName || 'ANNAT3');
+        }
+
+        const coverSrc = data.coverHash
+            ? `../cassetteAlbumCovers/${data.coverHash}.jpg`
+            : '../images_original/SmallCustomCassetteTemplate.png';
+        $coverImage.attr('src', coverSrc);
+
+        // Show/hide the video frame picker
+        if (data.isVideo) {
+            $videoFramePicker.show();
+            $frameTimeInput.val(data.frameTimeSec || 0);
+        } else {
+            $videoFramePicker.hide();
         }
         
         // Render Palette

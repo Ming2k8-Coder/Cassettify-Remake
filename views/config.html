@@ -32,29 +32,8 @@
             <div id="extracted-title">No Title Found</div>
         </div>
         
-        <div class="cover-image-container" id="cover-image-container" title="Click to change cover image">
-            <img id="cover-image" src="../images_original/SmallCustomCassetteTemplate.png" alt="Cover Image">
-            <div class="cover-overlay-text">Click to Change Cover</div>
-        </div>
-        
         <div class="metadata-group">
             <div id="extracted-duration">0.00 Seconds</div>
-        </div>
-        
-        <!-- Hidden input for selecting a custom cover image -->
-        <input type="file" id="file-custom-cover" accept="image/png, image/jpeg" style="display: none;">
-
-        <!-- Video Frame Picker (only visible for webm/mp4 etc.) -->
-        <div id="video-frame-picker" style="display:none; margin-top: 12px; width: 100%;">
-            <label style="font-size:0.85em; color:#aaa; display:block; margin-bottom:5px;">
-                📽 Video Cover Frame
-            </label>
-            <div style="display:flex; gap:8px; align-items:center;">
-                <input type="number" id="frame-time-input" placeholder="Time (sec)" min="0" step="0.5"
-                    style="width:110px; padding:6px 8px; background:#2a2a2a; color:white; border:1px solid #444; border-radius:6px; font-family:inherit;">
-                <button id="btn-extract-frame" class="btn-small">Extract Frame</button>
-            </div>
-            <p style="color:#888; font-size:0.75em; margin-top:4px;">Seek to this time in the video to use as the cassette cover thumbnail.</p>
         </div>
     </div>
 </div>

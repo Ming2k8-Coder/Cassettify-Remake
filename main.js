@@ -213,9 +213,22 @@ ipcMain.handle('export-cassette', async (event, uuid, destFolder) => {
     
     // Use PowerShell to zip on Windows
     await new Promise((resolve, reject) => {
-      const ps = require('node:child_process').exec(
-        `powershell Compress-Archive -Path "${tempFolder}\\*" -DestinationPath "${outputZip}" -Force`,
-        (err) => err ? reject(err) : resolve()
+      const ps = require('node:child_process').execFile(
+        'powershell',
+        [
+          '-NoProfile',
+          '-NonInteractive',
+          '-Command',
+          `Compress-Archive -Path '${tempFolder}\\*' -DestinationPath '${outputZip.replace(/'/g, "''")}' -Force`
+        ],
+        (err, stdout, stderr) => {
+          if (err) {
+            console.error('PowerShell Error:', stderr);
+            reject(err);
+          } else {
+            resolve();
+          }
+        }
       );
     });
     

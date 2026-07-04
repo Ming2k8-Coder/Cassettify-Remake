@@ -5,6 +5,7 @@ $(function () {
     let currentAudioPath = null;
     let currentUUID = null;
     let beatTimestamps = [];
+    const beatSound = new Audio('../beat_previewer/beat_sound/beat.wav');
 
     // ── Init WaveSurfer ──────────────────────────────────────────────
     function initWaveSurfer() {
@@ -32,6 +33,13 @@ $(function () {
             normalize: true,
             interact: true,
             plugins: [regionsPlugin, timelinePlugin]
+        });
+
+        regionsPlugin.on('region-in', (region) => {
+            if ($('#chk-metronome').is(':checked')) {
+                beatSound.currentTime = 0;
+                beatSound.play().catch(e => console.error('Audio play failed', e));
+            }
         });
 
         wavesurfer.on('click', () => wavesurfer.playPause());
@@ -109,8 +117,6 @@ $(function () {
         if (result && result.success && result.buffer) {
             const arr = new Uint8Array(result.buffer.data || result.buffer);
             const blob = new Blob([arr]);
-            wavesurfer.loadBlob(blob);
-
             wavesurfer.once('ready', () => {
                 isLoaded = true;
                 // If previous beats exist in meta, render them right away
@@ -120,6 +126,7 @@ $(function () {
                     showBeatStats(beatTimestamps);
                 }
             });
+            wavesurfer.loadBlob(blob);
         } else {
             $('#waveform-loading').text('Failed to load audio.').show();
         }
@@ -217,7 +224,7 @@ $(function () {
 
     // ── Playback ─────────────────────────────────────────────────────
     $('#btn-play-preview').on('click', () => {
-        if (wavesurfer && isLoaded) wavesurfer.playPause();
+        if (wavesurfer) wavesurfer.playPause();
     });
 
     $('#btn-clear-beats').on('click', () => {

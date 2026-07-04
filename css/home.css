@@ -58,11 +58,17 @@
 
 .song-container figcaption {
     overflow: hidden;
+    flex: 1;
+    min-width: 0;
+    margin: 0 15px;
 }
 
+.song-container figcaption li,
 .song-container figcaption ul {
     overflow: hidden;
+    white-space: nowrap;
     text-overflow: ellipsis;
+    display: block;
 }
 
 .image-container {
@@ -172,7 +178,8 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    height: 100%; /* Height will become width visually after rotation */
+    height: 400px; /* becomes visual width after -90deg rotation */
+    object-fit: contain;
     pointer-events: none;
     z-index: 10;
     filter: drop-shadow(5px 5px 15px rgba(0,0,0,0.5));
