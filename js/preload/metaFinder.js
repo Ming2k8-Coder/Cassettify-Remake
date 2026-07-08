@@ -116,8 +116,8 @@ async function convertAudioToHighQualityOgg(audioPath, outputPath) {
 // Main entry point: initialise a single media file into the cassettes folder
 // Accepts an optional frameTimeSec for video cover thumbnail extraction
 // ────────────────────────────────────────────────────────────────
-module.exports = async function initializeAudio(audioPath, frameTimeSec = 0) {
-  console.log('[metaFinder] initializeAudio START:', audioPath);
+module.exports = async function initializeAudio(audioPath, frameTimeSec = 0, skipMeta = false) {
+  console.log('[metaFinder] initializeAudio START:', audioPath, 'skipMeta:', skipMeta);
   const tempPath = './temp/';
   await fs.mkdir(tempPath, { recursive: true });
 
@@ -138,12 +138,14 @@ module.exports = async function initializeAudio(audioPath, frameTimeSec = 0) {
   audioMeta.frameTimeSec = isVideo ? frameTimeSec : undefined;
 
   console.log('[metaFinder] extracting cover...');
-  audioMeta.coverHash   = await retrieveAudioCover(audioPath, frameTimeSec);
+  audioMeta.coverHash   = skipMeta ? null : await retrieveAudioCover(audioPath, frameTimeSec);
   console.log('[metaFinder] coverHash:', audioMeta.coverHash);
 
   console.log('[metaFinder] reading title/artist/duration...');
-  audioMeta.title       = await audioTitle(audioPath);
-  audioMeta.artist      = await audioArtist(audioPath);
+  audioMeta.title       = skipMeta ? null : await audioTitle(audioPath);
+  audioMeta.artist      = skipMeta ? null : await audioArtist(audioPath);
+  audioMeta.originalTitle = audioMeta.title;
+  audioMeta.originalArtist = audioMeta.artist;
   audioMeta.duration    = await audioDuration(audioPath);
   console.log('[metaFinder] meta:', audioMeta.title, '/', audioMeta.artist, '/', audioMeta.duration, 's');
 

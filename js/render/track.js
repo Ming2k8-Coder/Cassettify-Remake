@@ -36,13 +36,22 @@ $(function () {
         });
 
         regionsPlugin.on('region-in', (region) => {
+            // Audio Metronome Click
             if ($('#chk-metronome').is(':checked')) {
                 beatSound.currentTime = 0;
                 beatSound.play().catch(e => console.error('Audio play failed', e));
             }
+            // Visual Beat Pulse Flash
+            const $indicator = $('#beat-flash-indicator');
+            if ($indicator.length) {
+                $indicator.addClass('flash');
+                setTimeout(() => $indicator.removeClass('flash'), 80);
+            }
         });
 
-        wavesurfer.on('click', () => wavesurfer.playPause());
+        wavesurfer.on('click', () => {
+            if (wavesurfer) wavesurfer.playPause();
+        });
 
         wavesurfer.on('audioprocess', () => {
             const cur = wavesurfer.getCurrentTime();
@@ -56,8 +65,8 @@ $(function () {
             $('#waveform-loading').hide();
         });
 
-        wavesurfer.on('play', () => $('#btn-play-preview').text('⏸'));
-        wavesurfer.on('pause', () => $('#btn-play-preview').text('▶'));
+        wavesurfer.on('play', () => $('#btn-play-preview').text('⏸ Pause'));
+        wavesurfer.on('pause', () => $('#btn-play-preview').text('▶ Play'));
     }
 
     function fmtTime(s) {
@@ -75,7 +84,7 @@ $(function () {
                 regionsPlugin.addRegion({
                     start: t,
                     end: t + 0.02,
-                    color: 'rgba(255, 74, 74, 0.6)',
+                    color: 'rgba(255, 74, 74, 0.5)',
                     drag: false,
                     resize: false
                 });
@@ -89,7 +98,6 @@ $(function () {
 
         // Only re-load audio if the cassette changed
         if (currentUUID === window.currentCassetteUUID && isLoaded) {
-            // Just re-render beats if we have them
             const data = window.cassetteData.find(c => c.UUID === window.currentCassetteUUID);
             if (data && data.beats) showBeatStats(data.beats);
             return;
@@ -117,6 +125,7 @@ $(function () {
         if (result && result.success && result.buffer) {
             const arr = new Uint8Array(result.buffer.data || result.buffer);
             const blob = new Blob([arr]);
+            
             wavesurfer.once('ready', () => {
                 isLoaded = true;
                 // If previous beats exist in meta, render them right away
@@ -186,20 +195,22 @@ $(function () {
         $('#stat-bpm').text(`~${avgBPM} BPM`);
         $('#stat-duration').text(`Range: ${fmtTime(beats[0])} – ${fmtTime(beats[n - 1])}`);
         $('#bpm-display').text(`BPM: ${avgBPM}`);
-        $('#beat-stats').show();
+        $('#beat-stats').css('display', 'flex');
     }
 
-    // ── Constant BPM mode ────────────────────────────────────────────
+    // ── Mode Toggling Panel Visibility ───────────────────────────────
     $('#btn-mode-auto').on('click', () => {
         $('#btn-mode-auto').addClass('active');
         $('#btn-mode-constant').removeClass('active');
         $('#constant-bpm-panel').hide();
+        $('#auto-bpm-panel').show();
     });
 
     $('#btn-mode-constant').on('click', () => {
         $('#btn-mode-constant').addClass('active');
         $('#btn-mode-auto').removeClass('active');
         $('#constant-bpm-panel').show();
+        $('#auto-bpm-panel').hide();
     });
 
     // Generate constant-BPM grid on demand
@@ -222,7 +233,13 @@ $(function () {
         }
     });
 
-    // ── Playback ─────────────────────────────────────────────────────
+    // ── Playback & Tab Swapping Stops ────────────────────────────────
+    function stopPlayback() {
+        if (wavesurfer && isLoaded) {
+            wavesurfer.pause();
+        }
+    }
+
     $('#btn-play-preview').on('click', () => {
         if (wavesurfer) wavesurfer.playPause();
     });
@@ -233,4 +250,15 @@ $(function () {
         $('#beat-stats').hide();
         $('#bpm-display').text('');
     });
+
+    // Pause audio when switching pages
+    const originalOpenPage = window.openPage;
+    window.openPage = function(pageName) {
+        if (pageName !== 'track') {
+            stopPlayback();
+        }
+        if (typeof originalOpenPage === 'function') {
+            originalOpenPage(pageName);
+        }
+    };
 });

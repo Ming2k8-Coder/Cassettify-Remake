@@ -17,14 +17,15 @@
     </head>
     <body>
         <div id="header"></div>
-    </body>
-    <div id="pages">
-        <div id="home-page" class="page active"></div>
+        <div id="pages">
+            <div id="home-page" class="page active"></div>
         <div id="config-page" class="page"></div>
         <div id="visuals-page" class="page"></div>
         <div id="track-page" class="page"></div>
         <div id="export-page" class="page"></div>
+        <div id="settings-page" class="page"></div>
     </div>
+</body>
 
     <script>
         // Load all HTML fragments, then load all page scripts once the DOM is fully populated
@@ -35,7 +36,8 @@
                 $("#config-page").load("../views/config.html"),
                 $("#visuals-page").load("../views/visuals.html"),
                 $("#track-page").load("../views/track.html"),
-                $("#export-page").load("../views/export.html")
+                $("#export-page").load("../views/export.html"),
+                $("#settings-page").load("../views/settings.html")
             ];
 
             // $.when on .load() doesn't work natively — use a counter instead
@@ -51,7 +53,8 @@
                     "../js/render/config.js",
                     "../js/render/visuals.js",
                     "../js/render/track.js",
-                    "../js/render/export.js"
+                    "../js/render/export.js",
+                    "../js/render/settings.js"
                 ];
 
                 function loadNext(i) {
@@ -59,6 +62,7 @@
                         console.log('[index] All page scripts loaded ✅ — running page inits');
                         // Now that all scripts and DOM fragments are ready, initialize each page
                         if (typeof window.initHomePage === 'function') window.initHomePage();
+                        if (typeof window.initSettingsPage === 'function') window.initSettingsPage();
                         return;
                     }
                     $.getScript(scripts[i])
@@ -80,6 +84,7 @@
             $("#visuals-page").load("../views/visuals.html", onLoaded);
             $("#track-page").load("../views/track.html", onLoaded);
             $("#export-page").load("../views/export.html", onLoaded);
+            $("#settings-page").load("../views/settings.html", onLoaded);
         });
     </script>
 </html>

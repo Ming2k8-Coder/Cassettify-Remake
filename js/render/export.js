@@ -42,10 +42,12 @@ $(function() {
         const destFolder = await window.filesystem.selectExportFolder();
         if (!destFolder) return;
 
+        const format = $('input[name="export-format"]:checked').val() || 'robobeat';
+
         $('#btn-export').prop('disabled', true).text('⏳ Exporting...');
         $('#export-status').text('Packaging cassette...');
 
-        const result = await window.filesystem.exportCassette(window.currentCassetteUUID, destFolder);
+        const result = await window.filesystem.exportCassette(window.currentCassetteUUID, destFolder, format);
 
         if (result.success) {
             $('#export-status').text(`✅ Exported to: ${result.outputFile}`);

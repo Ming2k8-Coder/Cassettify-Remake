@@ -3,10 +3,10 @@ const initializeAudio = require('./metaFinder.js');
 const findBeats = require('./beatFinder.js');
 
 contextBridge.exposeInMainWorld('metadata', {
-  initializeAudio: async (audioPath) => {
-    console.log('[preload] initializeAudio called:', audioPath);
+  initializeAudio: async (audioPath, skipMeta = false) => {
+    console.log('[preload] initializeAudio called:', audioPath, 'skipMeta:', skipMeta);
     try {
-      const result = await initializeAudio(audioPath);
+      const result = await initializeAudio(audioPath, 0, skipMeta);
       console.log('[preload] initializeAudio success:', audioPath);
       return result;
     } catch (err) {
@@ -25,5 +25,6 @@ contextBridge.exposeInMainWorld('metadata', {
 contextBridge.exposeInMainWorld('filesystem', {
   openFileDialog: () => ipcRenderer.invoke('open-file-dialog'),
   selectExportFolder: () => ipcRenderer.invoke('select-export-folder'),
-  exportCassette: (uuid, destFolder) => ipcRenderer.invoke('export-cassette', uuid, destFolder)
+  exportCassette: (uuid, destFolder, format) => ipcRenderer.invoke('export-cassette', uuid, destFolder, format),
+  resetUserData: () => ipcRenderer.invoke('reset-user-data')
 });

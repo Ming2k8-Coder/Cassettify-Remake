@@ -31,6 +31,51 @@
         <div class="palette-preview" id="palette-preview" style="display: flex; gap: 5px; margin-top: 20px;">
             <!-- Palette colors will be injected here -->
         </div>
+
+        <!-- Cover Image Adjustments -->
+        <div class="form-group" style="margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;">
+            <h4 style="color: var(--accent-color); margin: 0 0 10px 0;">Cover Alignment</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <label style="font-size: 0.8em; color: #aaa;">Scale X (%)</label>
+                    <input type="range" id="cover-scale-x" min="10" max="200" value="100" style="width: 100%;">
+                </div>
+                <div>
+                    <label style="font-size: 0.8em; color: #aaa;">Scale Y (%)</label>
+                    <input type="range" id="cover-scale-y" min="10" max="200" value="100" style="width: 100%;">
+                </div>
+                <div>
+                    <label style="font-size: 0.8em; color: #aaa;">Offset X (px)</label>
+                    <input type="range" id="cover-offset-x" min="-100" max="100" value="0" style="width: 100%;">
+                </div>
+                <div>
+                    <label style="font-size: 0.8em; color: #aaa;">Offset Y (px)</label>
+                    <input type="range" id="cover-offset-y" min="-100" max="100" value="0" style="width: 100%;">
+                </div>
+                <div style="grid-column: span 2;">
+                    <label style="font-size: 0.8em; color: #aaa;">Rotation (deg)</label>
+                    <input type="range" id="cover-rotation" min="-180" max="180" value="0" style="width: 100%;">
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button id="btn-reset-cover-align" class="btn-small" style="width: 100%;">Reset</button>
+                <button id="btn-save-global-align" class="btn-small" style="width: 100%;" title="Set these settings as default for new cassettes">Set Default</button>
+            </div>
+        </div>
+
+        <!-- Stickers -->
+        <div class="form-group" style="margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;">
+            <h4 style="color: var(--accent-color); margin: 0 0 5px 0;">Stickers</h4>
+            <p style="font-size:0.75em; color:#888; margin: 0 0 10px 0;">Add custom sticker overlays to the cassette face.</p>
+            <div style="display: flex; gap: 8px;">
+                <button id="btn-add-sticker" class="btn-small" style="flex: 1;">➕ Add Sticker</button>
+                <button id="btn-clear-stickers" class="btn-small">Clear</button>
+            </div>
+            <input type="file" id="file-sticker-upload" accept="image/png, image/jpeg" style="display: none;">
+            <div id="stickers-control-list" style="margin-top: 10px; max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                <!-- Sticker elements control will be added here -->
+            </div>
+        </div>
     </div>
 
     <div class="config-right">
@@ -56,11 +101,17 @@
         </div>
 
         <!-- 3D Preview -->
-        <div class="cassette-3d-model" id="visuals-cassette-model" style="width: 300px; height: 300px;">
+        <div class="cassette-3d-model" id="visuals-cassette-model" style="width: 300px; height: 300px; position: relative;">
+            <!-- Background cover image -->
+            <img id="visuals-cover-image" src="" class="cassette-cover" style="display: none; position: absolute; pointer-events: none; top: 50%; left: 50%; width: 220px; height: 140px; transform-origin: center center;">
+            
+            <!-- Stickers container -->
+            <div id="visuals-stickers-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></div>
+
             <!-- Foreground cassette template with transparent window -->
             <img src="../images_original/SmallCustomCassetteTemplate.png" class="cassette-template"
                 id="preview-cassette-template" alt="Cassette Template"
-                style="filter: drop-shadow(5px 5px 15px rgba(0,0,0,0.5)); transform: translate(-50%, -50%) rotate(-90deg); transition: filter 0.3s;">
+                style="filter: drop-shadow(5px 5px 15px rgba(0,0,0,0.5)); transform: translate(-50%, -50%) rotate(-90deg); transition: filter 0.3s; position: absolute; top: 50%; left: 50%;">
         </div>
         <p style="color: #aaa; font-style: italic;">Real-time CSS Preview</p>
     </div>

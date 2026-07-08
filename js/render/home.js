@@ -185,7 +185,8 @@ async function handlePaths(allPaths) {
         console.log(`[handlePaths] Processing (${done + 1}/${allPaths.length}):`, filePath);
         try {
             if (window.metadata && window.metadata.initializeAudio) {
-                await window.metadata.initializeAudio(filePath);
+                const autoMetaSetting = localStorage.getItem('settings-auto-meta') !== 'false';
+                await window.metadata.initializeAudio(filePath, !autoMetaSetting);
                 console.log(`[handlePaths] ✅ Done:`, filePath);
             }
         } catch (err) {
