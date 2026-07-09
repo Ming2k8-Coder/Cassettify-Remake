@@ -31,65 +31,94 @@ window.Cassette3D = (function() {
         const visuals = data.visuals || {};
         const pattern = visuals.CassetteTextureInternalName || 'DEFAULT';
         let textureFile = 'cassetteDEFAULT.png';
-        if (pattern === 'bpm1') textureFile = 'cassette_bpm1.png';
+        if (pattern === 'CUSTOM') textureFile = 'CustomCassetteTemplate.png';
+        else if (pattern === 'bpm1') textureFile = 'cassette_bpm1.png';
         else if (pattern !== 'DEFAULT') textureFile = `cassette${pattern}.png`;
+
+        if (pattern === 'CUSTOM') {
+            const coverSrc = data.coverHash ? `../cassetteAlbumCovers/${data.coverHash}.jpg` : null;
+            const atlasScale = 330 / 300;
+
+            // Fallback to global defaults if visuals undefined
+            const defaultAlignStr = localStorage.getItem('default-cover-align');
+            const defaultAlign = defaultAlignStr ? JSON.parse(defaultAlignStr) : {};
+            
+            const sx = visuals.CoverScaleX ?? defaultAlign.CoverScaleX ?? 100;
+            const sy = visuals.CoverScaleY ?? defaultAlign.CoverScaleY ?? 100;
+            const ox = visuals.CoverOffsetX ?? defaultAlign.CoverOffsetX ?? 0;
+            const oy = visuals.CoverOffsetY ?? defaultAlign.CoverOffsetY ?? 0;
+            const rot = visuals.CoverRotation ?? defaultAlign.CoverRotation ?? 0;
+
+            if (coverSrc && data.coverHash) {
+                const coverImg = await cacheImage('cover_' + data.coverHash, coverSrc);
+                if (coverImg) {
+                    for (const baseX of [128, 384]) {
+                        ctx.save();
+                        ctx.translate(baseX, 256);
+                        
+                        const isRight = baseX === 384;
+                        const baseRotation = isRight ? Math.PI / 2 : -Math.PI / 2;
+                        ctx.rotate(baseRotation);
+                        
+                        const curOx = isRight ? -ox : ox;
+                        const curOy = isRight ? oy : -oy;
+                        ctx.translate(curOx * atlasScale, curOy * atlasScale);
+                        ctx.rotate((rot * Math.PI) / 180);
+                        ctx.scale((sx / 100) * atlasScale, (sy / 100) * atlasScale);
+                        
+                        ctx.drawImage(coverImg, -128, -128, 256, 256);
+                        ctx.restore();
+                    }
+                }
+            }
+        }
 
         const patternImg = await cacheImage('pattern_' + pattern, `../images/${textureFile}`);
         if (patternImg) {
             ctx.drawImage(patternImg, 0, 0, 512, 512);
         }
 
-        const coverSrc = data.coverHash ? `../cassetteAlbumCovers/${data.coverHash}.jpg` : null;
-        const atlasScale = 330 / 300;
-
-        // Fallback to global defaults if visuals undefined
-        const defaultAlignStr = localStorage.getItem('default-cover-align');
-        const defaultAlign = defaultAlignStr ? JSON.parse(defaultAlignStr) : {};
-        
-        const sx = visuals.CoverScaleX ?? defaultAlign.CoverScaleX ?? 100;
-        const sy = visuals.CoverScaleY ?? defaultAlign.CoverScaleY ?? 100;
-        const ox = visuals.CoverOffsetX ?? defaultAlign.CoverOffsetX ?? 0;
-        const oy = visuals.CoverOffsetY ?? defaultAlign.CoverOffsetY ?? 0;
-        const rot = visuals.CoverRotation ?? defaultAlign.CoverRotation ?? 0;
-
-        if (coverSrc && data.coverHash) {
-            const coverImg = await cacheImage('cover_' + data.coverHash, coverSrc);
-            if (coverImg) {
-                ctx.save();
-                ctx.translate(128, 256);
-                ctx.rotate(-Math.PI / 2);
-                
-                ctx.translate(ox * atlasScale, oy * atlasScale);
-                ctx.rotate((rot * Math.PI) / 180);
-                ctx.scale(sx / 100, sy / 100);
-
-                const coverW = 220 * atlasScale;
-                const coverH = 140 * atlasScale;
-                ctx.drawImage(coverImg, -coverW / 2, -coverH / 2, coverW, coverH);
-                ctx.restore();
-            }
-        }
-
-        const stickers = visuals.Stickers || [];
-        for (const s of stickers) {
-            const stickerImg = await cacheImage(s.id, s.src);
-            if (stickerImg) {
-                ctx.save();
-                ctx.translate(128, 256);
-                ctx.rotate(-Math.PI / 2);
-
-                ctx.translate(s.x * atlasScale, s.y * atlasScale);
-                ctx.scale(s.scale / 100, s.scale / 100);
-
-                const stickerW = 50 * atlasScale;
-                const stickerH = 50 * atlasScale;
-                ctx.drawImage(stickerImg, -stickerW / 2, -stickerH / 2, stickerW, stickerH);
-                ctx.restore();
+        if (pattern === 'CUSTOM') {
+            // Draw stickers on top of the template
+            const stickers = visuals.Stickers || [];
+            for (const sticker of stickers) {
+                if (sticker.hash) {
+                    const stImg = await cacheImage('sticker_' + sticker.hash, `../cassetteAlbumCovers/${sticker.hash}.png`);
+                    if (stImg) {
+                        for (const baseX of [128, 384]) {
+                            ctx.save();
+                            ctx.translate(baseX, 256);
+                            
+                            const isRight = baseX === 384;
+                            const baseRotation = isRight ? Math.PI / 2 : -Math.PI / 2;
+                            ctx.rotate(baseRotation);
+                            
+                            const atlasScale = 330 / 300;
+                            const curStickerX = isRight ? -sticker.x : sticker.x;
+                            const curStickerY = isRight ? sticker.y : -sticker.y;
+                            ctx.translate(curStickerX * atlasScale, curStickerY * atlasScale);
+                            ctx.rotate((sticker.rotation * Math.PI) / 180);
+                            ctx.scale((sticker.scale / 100) * atlasScale, (sticker.scale / 100) * atlasScale);
+                            
+                            // Sticker base size is assumed 100x100
+                            ctx.drawImage(stImg, -50, -50, 100, 100);
+                            ctx.restore();
+                        }
+                    }
+                }
             }
         }
 
         if (canvasTextureInstance) {
             canvasTextureInstance.needsUpdate = true;
+        }
+        
+        if (data) {
+            if (pattern === 'CUSTOM') {
+                data.customTextureBase64 = textureCanvas.toDataURL('image/png');
+            } else {
+                data.customTextureBase64 = null;
+            }
         }
     }
 

@@ -133,81 +133,93 @@ ipcMain.handle('get-audio-buffer', async (event, audioPath) => {
 // Export cassette as .robobeat file
 const { execFile } = require('node:child_process');
 const crypto = require('node:crypto');
-ipcMain.handle('export-cassette', async (event, uuid, destFolder, format = 'robobeat') => {
-  try {
-    const metaPath = path.join(__dirname, 'cassettes', uuid, 'meta.json');
-    const meta = JSON.parse(await fs.readFile(metaPath, 'utf8'));
-    
-    const internalName = 'cassettify_' + crypto.randomBytes(15).toString('hex');
-    const safeTitle = (meta.title || 'cassette').replace(/[^a-z0-9_\-\s]/gi, '_');
-    
-    // Build config object (mirrors cassetteConfigP2.json)
-    const beats = meta.beats || [];
-    const floatBeats = beats.map(b => parseFloat(b));
-    const startTime = floatBeats.length > 0 ? floatBeats[0] : 0;
-    const endTime = floatBeats.length > 0 ? floatBeats[floatBeats.length - 1] : (parseFloat(meta.duration) || 0);
-    
-    const visuals = meta.visuals || {};
-    const color = visuals.CassetteColor || { r: 1, g: 1, b: 1, a: 1 };
-    
-    // Figure out audio filename for config reference
-    const originalAudioDir = path.join(__dirname, 'cassettes', uuid, 'originalAudio');
-    const audioFiles = await fs.readdir(originalAudioDir);
-    const audioFile = audioFiles[0] || 'audio.ogg';
-    const audioExt = path.extname(audioFile);
-    const exportedSoundFilename = internalName + '_audio' + audioExt;
-    
-    const configObj = {
-      File: {
-        InternalName: internalName,
-        Info: {
-          PathToAudioClip: `${process.env.USERPROFILE.replace(/\\/g, '/')}/AppData/LocalLow/Inzanity/ROBOBEAT/cassette_audio/${exportedSoundFilename}`,
-          InStorage: true,
-          FileName: exportedSoundFilename,
-          LengthOfClip: parseFloat(meta.duration) || 0,
-          PublicName: meta.title || 'Unknown Title',
-          ArtistName: meta.artist || 'Unknown Artist',
-          BPM: 0
+ipcMain.handle('export-cassette', async (event, uuid, destFolder, format = 'robobeat', customTextureBase64 = null) => {
+    try {
+      const metaPath = path.join(__dirname, 'cassettes', uuid, 'meta.json');
+      const meta = JSON.parse(await fs.readFile(metaPath, 'utf8'));
+      if (!meta) throw new Error('Cassette not found in database.');
+
+      const internalName = `custom_cassette_${Date.now()}`;
+      const safeTitle = (meta.title || 'Untitled').replace(/[^a-zA-Z0-9_-]/g, '_');
+      
+      const audioFile = meta.filename;
+      if (!audioFile) throw new Error('No audio file associated.');
+      
+      const exportedSoundFilename = internalName + '_audio.ogg';
+      
+      // Parse lengths
+      const startTime = parseFloat(meta.audioStart) || 0;
+      const duration = parseFloat(meta.duration) || 0;
+      const endTime = startTime + duration;
+      
+      // Parse beats
+      const floatBeats = (meta.beats || []).map(b => parseFloat(b));
+      
+      // Parse visuals
+      const visuals = meta.visuals || {};
+      const color = visuals.CassetteColor || { r: 1, g: 1, b: 1 };
+      
+      const isCustom = visuals.CassetteTextureInternalName === 'CUSTOM';
+
+      const configObj = {
+        File: {
+          InternalName: internalName,
+          Info: {
+            PathToAudioClip: `C:/Users/ethan/AppData/LocalLow/Inzanity/ROBOBEAT/cassette_audio/${exportedSoundFilename}`,
+            InStorage: true,
+            FileName: exportedSoundFilename,
+            LengthOfClip: duration,
+            PublicName: meta.title || 'Untitled',
+            ArtistName: meta.artist || 'Unknown',
+            BPM: 0
+          },
+          Beat: {
+            StartTime: startTime,
+            EndTime: endTime,
+            VolumeOffset: 0.0,
+            NumberOfBeats: floatBeats.length,
+            Beats: floatBeats
+          },
+          Visuals: {
+            CassetteTextureInternalName: isCustom ? (internalName + '.png') : (visuals.CassetteTextureInternalName || 'DEFAULT'),
+            CassetteColor: { r: color.r || 1, g: color.g || 1, b: color.b || 1, a: 1.0 },
+            CassetteStrength: 1.0,
+            IsCustomTexture: isCustom
+          },
+          IsMixTape: false
         },
-        Beat: {
-          StartTime: startTime,
-          EndTime: endTime,
-          VolumeOffset: 0.0,
-          NumberOfBeats: floatBeats.length,
-          Beats: floatBeats
-        },
-        Visuals: {
-          CassetteTextureInternalName: visuals.CassetteTextureInternalName || 'DEFAULT',
-          CassetteColor: { r: color.r || 1, g: color.g || 1, b: color.b || 1, a: 1.0 },
-          CassetteStrength: 1.0,
-          IsCustomTexture: false
-        },
-        IsMixTape: false
-      },
-      InternalName: internalName
-    };
-    
-    if (format === 'json') {
-      const outputFile = path.join(destFolder, safeTitle + '.json');
-      await fs.writeFile(outputFile, JSON.stringify(configObj, null, 4), 'utf8');
-      return { success: true, outputFile };
-    }
-    
-    // Otherwise it's 'robobeat' format (standard zipped .robobeat file)
-    const tempFolder = path.join(__dirname, 'temp_export', internalName);
-    await fs.mkdir(tempFolder, { recursive: true });
-    
-    // 1. Copy audio file
-    await fs.copyFile(path.join(originalAudioDir, audioFile), path.join(tempFolder, exportedSoundFilename));
-    
-    // 2. Copy album cover
-    const coverHash = meta.coverHash;
-    if (coverHash) {
-      const coverSrc = path.join(__dirname, 'cassetteAlbumCovers', coverHash + '.jpg');
-      try {
-        await fs.copyFile(coverSrc, path.join(tempFolder, internalName + '.jpg'));
-      } catch {}
-    }
+        InternalName: internalName
+      };
+      
+      if (format === 'json') {
+        const outputFile = path.join(destFolder, safeTitle + '.json');
+        await fs.writeFile(outputFile, JSON.stringify(configObj, null, 4), 'utf8');
+        return { success: true, outputFile };
+      }
+      
+      // Otherwise it's 'robobeat' format (standard zipped .robobeat file)
+      const tempFolder = path.join(__dirname, 'temp_export', internalName);
+      await fs.mkdir(tempFolder, { recursive: true });
+      
+      const originalAudioDir = path.join(__dirname, 'cassettes', uuid, 'originalAudio');
+      
+      // 1. Copy audio file
+      await fs.copyFile(path.join(originalAudioDir, audioFile), path.join(tempFolder, exportedSoundFilename));
+      
+      // 2. Export album cover / texture
+      if (isCustom && customTextureBase64) {
+        const base64Data = customTextureBase64.replace(/^data:image\/(jpeg|png);base64,/, "");
+        const buffer = Buffer.from(base64Data, 'base64');
+        await fs.writeFile(path.join(tempFolder, internalName + '.png'), buffer);
+      } else {
+        const coverHash = meta.coverHash;
+        if (coverHash) {
+          const coverSrc = path.join(__dirname, 'cassetteAlbumCovers', coverHash + '.jpg');
+          try {
+            await fs.copyFile(coverSrc, path.join(tempFolder, internalName + '.jpg'));
+          } catch {}
+        }
+      }
     
     // 3. Prepend the P1 header then write the .cassette file
     const p1 = '{\n    "Main": 5,\n    "Secondary": 8\n}';

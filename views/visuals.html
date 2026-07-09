@@ -24,6 +24,7 @@
             <div class="form-group">
                 <label for="pattern-select">Pattern</label>
                 <select id="pattern-select" class="styled-select">
+                    <option value="CUSTOM">Custom Texture</option>
                     <option value="DEFAULT">Default</option>
                     <option value="ANNAT1">Annat 1</option>
                     <option value="ANNAT2">Annat 2</option>
@@ -49,7 +50,7 @@
         </div>
 
         <!-- Cover Alignment Card -->
-        <div class="card-glass">
+        <div id="cover-alignment-card" class="card-glass">
             <h4 class="card-heading">Cover Alignment</h4>
 
             <div class="slider-grid">
@@ -96,7 +97,7 @@
         </div>
 
         <!-- Stickers Card -->
-        <div class="card-glass">
+        <div id="stickers-card" class="card-glass">
             <h4 class="card-heading">Stickers</h4>
             <p class="card-desc">Add custom image overlays to the cassette face.</p>
             <div style="display: flex; gap: 8px;">
@@ -112,58 +113,16 @@
 
     <!-- Right Panel: Preview -->
     <div class="visuals-right">
-        <!-- Cover Image Picker -->
-        <div class="card-glass" style="align-items: center;">
-            <h4 class="card-heading" style="align-self: flex-start;">Album Cover</h4>
-            <div class="cover-image-container" id="cover-image-container" title="Click to change cover image">
-                <img id="cover-image" src="../images_original/SmallCustomCassetteTemplate.png" alt="Cover Image">
-                <div class="cover-overlay-text">Click to Change</div>
-            </div>
-            <input type="file" id="file-custom-cover" accept="image/png, image/jpeg" style="display: none;">
 
-            <!-- Video Frame Picker (hidden by default) -->
-            <div id="video-frame-picker" style="display:none; width: 100%;">
-                <label style="font-size:0.85em; color:#aaa; display:block; margin-bottom:5px;">📽 Video Cover Frame</label>
-                <div style="display:flex; gap:8px; align-items:center;">
-                    <input type="number" id="frame-time-input" placeholder="Time (sec)" min="0" step="0.5" class="styled-number-input">
-                    <button id="btn-extract-frame" class="btn-small">Extract Frame</button>
-                </div>
-                <p class="card-desc" style="margin-top: 4px;">Seek to this time in the video to use as the cover.</p>
-            </div>
-        </div>
 
         <!-- Cassette Preview -->
         <div class="card-glass" style="align-items: center; flex: 1;">
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <h4 class="card-heading">Live Preview</h4>
-                <button id="btn-view-3d" class="btn-primary" style="padding: 6px 12px; font-size: 0.8em; margin: 0;">👁 View 3D Model</button>
+                <h4 class="card-heading">Live 3D Preview</h4>
             </div>
-            <div class="cassette-3d-model" id="visuals-cassette-model">
-                <!-- Background cover image -->
-                <img id="visuals-cover-image" src="" class="cassette-cover" style="display: none; position: absolute; pointer-events: none; top: 50%; left: 50%; width: 220px; height: 140px; transform-origin: center center;">
-                
-                <!-- Stickers container -->
-                <div id="visuals-stickers-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></div>
-
-                <!-- Foreground cassette template -->
-                <img src="../images/cassetteFace.png" class="cassette-template"
-                    id="preview-cassette-template" alt="Cassette Template">
+            <div class="cassette-3d-model" id="visuals-cassette-model" style="display: flex; justify-content: center; align-items: center; width: 100%; height: 350px;">
+                <div id="visuals-3d-canvas-container" style="width: 100%; height: 100%; background: transparent; overflow: hidden; border-radius: 8px;"></div>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- 3D Preview Modal Popup -->
-<div id="visuals-3d-popup" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 2500; justify-content: center; align-items: center;">
-    <div class="modal-container card-glass" style="max-width: 900px; width: 90%; align-items: center; justify-content: center; position: relative; padding: 30px;">
-        <button id="btn-close-3d-popup" class="export-close-btn" style="position: absolute; top: 15px; right: 20px; background: none; border: none; color: #888; font-size: 1.8em; cursor: pointer;">✕</button>
-        <h3 style="margin-top: 0; color: var(--accent-color); align-self: flex-start;">3D Cassette View</h3>
-        
-        <!-- The 3D Model structure inside the popup (Real Three.js WebGL) -->
-        <div class="perspective-container" style="padding: 10px 0; display: flex; justify-content: center; align-items: center; width: 100%;">
-            <div id="visuals-3d-canvas-container" style="width: 100%; height: 600px; position: relative; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden;"></div>
-        </div>
-        
-        <p style="color: #888; font-size: 0.85em; font-style: italic; margin-top: 15px; margin-bottom: 0;">Drag mouse around to rotate the 3D cassette</p>
     </div>
 </div>

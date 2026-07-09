@@ -199,11 +199,23 @@ $(function() {
     $labelColor.on('input', () => { applyPreviewTint(); saveVisuals(); });
     function getTextureFilename(pattern) {
         if (!pattern || pattern === 'DEFAULT') return 'cassetteDEFAULT.png';
+        if (pattern === 'CUSTOM') return 'CustomCassetteTemplate.png';
         if (pattern === 'bpm1') return 'cassette_bpm1.png';
         return `cassette${pattern}.png`;
     }
 
+    function toggleCustomPanels() {
+        if ($patternSelect.val() === 'CUSTOM') {
+            $('#cover-alignment-card').show();
+            $('#stickers-card').show();
+        } else {
+            $('#cover-alignment-card').hide();
+            $('#stickers-card').hide();
+        }
+    }
+
     $patternSelect.on('change', () => {
+        toggleCustomPanels();
         debounceUpdateTexture();
         saveVisuals();
     });
@@ -372,6 +384,7 @@ $(function() {
         applyCoverAlignment();
         updateSliderValues();
         renderStickers();
+        toggleCustomPanels();
         debounceUpdateTexture();
 
         const coverSrc = data.coverHash
@@ -388,6 +401,14 @@ $(function() {
         } else {
             $videoFramePicker.hide();
         }
+
+        // Initialize Live 3D Preview
+        setTimeout(() => {
+            const container = document.getElementById('visuals-3d-canvas-container');
+            if (window.Cassette3D && container) {
+                window.Cassette3D.init(container, data);
+            }
+        }, 50);
         
         // Render Palette
         $palettePreview.empty();
@@ -520,43 +541,15 @@ $(function() {
         if (canvasTextureInstance) {
             canvasTextureInstance.needsUpdate = true;
         }
+
+        // Live update the embedded 3D viewer
+        if (window.Cassette3D) {
+            window.Cassette3D.updateData(data);
+        }
     }
 
     const debounceUpdateTexture = debounce(updateGeneratedTexture, 100);
 
-    // ── 3D View Popup Modal Handlers (Real Three.js WebGL) ────────────
-    const $btnView3d = $('#btn-view-3d');
-    const $popup3d = $('#visuals-3d-popup');
-    const $btnClose3d = $('#btn-close-3d-popup');
-
-    $btnView3d.on('click', () => {
-        if (!window.currentCassetteUUID) return;
-        $popup3d.css('display', 'flex');
-        
-        // Initialize WebGL view after modal display has been applied
-        setTimeout(() => {
-            const container = document.getElementById('visuals-3d-canvas-container');
-            const data = window.cassetteData.find(c => c.UUID === window.currentCassetteUUID);
-            if (window.Cassette3D && container) {
-                window.Cassette3D.init(container, data);
-            }
-        }, 100);
-    });
-
-    function destroyThreeJS() {
-        if (window.Cassette3D) window.Cassette3D.destroy();
-    }
-
-    $btnClose3d.on('click', () => {
-        $popup3d.hide();
-        destroyThreeJS();
-    });
-
-    // Close on overlay click
-    $popup3d.on('click', (e) => {
-        if ($(e.target).is($popup3d)) {
-            $popup3d.hide();
-            destroyThreeJS();
-        }
-    });
+    // Ensure Cassette3D is cleaned up if we leave the page (if necessary, though sticking to the DOM is fine)
+    // We can initialize it in loadVisualsPage instead.
 });

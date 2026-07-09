@@ -25,6 +25,6 @@ contextBridge.exposeInMainWorld('metadata', {
 contextBridge.exposeInMainWorld('filesystem', {
   openFileDialog: () => ipcRenderer.invoke('open-file-dialog'),
   selectExportFolder: () => ipcRenderer.invoke('select-export-folder'),
-  exportCassette: (uuid, destFolder, format) => ipcRenderer.invoke('export-cassette', uuid, destFolder, format),
+  exportCassette: (uuid, destFolder, format, customTextureBase64) => ipcRenderer.invoke('export-cassette', uuid, destFolder, format, customTextureBase64),
   resetUserData: () => ipcRenderer.invoke('reset-user-data')
 });

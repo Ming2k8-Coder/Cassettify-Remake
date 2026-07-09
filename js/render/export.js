@@ -47,7 +47,8 @@ $(function() {
         $('#btn-export').prop('disabled', true).text('⏳ Exporting...');
         $('#export-status').text('Packaging cassette...');
 
-        const result = await window.filesystem.exportCassette(window.currentCassetteUUID, destFolder, format);
+        const data = window.cassetteData.find(c => c.UUID === window.currentCassetteUUID);
+        const result = await window.filesystem.exportCassette(window.currentCassetteUUID, destFolder, format, data ? data.customTextureBase64 : null);
 
         if (result.success) {
             $('#export-status').text(`✅ Exported to: ${result.outputFile}`);
