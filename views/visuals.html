@@ -1,118 +1,169 @@
-<div class="config-container">
-    <div class="config-left" style="overflow-y: auto;">
-        <h3>Cassette Visuals</h3>
+<div class="visuals-container">
+    <!-- Left Panel: Controls -->
+    <div class="visuals-left">
+        <!-- Colors & Pattern Card -->
+        <div class="card-glass">
+            <h4 class="card-heading">Cassette Appearance</h4>
 
-        <div class="form-group">
-            <label for="cassette-color">Cassette Body Color</label>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="color" id="cassette-color" value="#ffffff">
-                <button id="btn-auto-cassette-color" class="btn-small">Use Album Palette</button>
+            <div class="form-group">
+                <label>Body Color</label>
+                <div class="color-row">
+                    <input type="color" id="cassette-color" value="#ffffff" class="color-swatch">
+                    <button id="btn-auto-cassette-color" class="btn-small">🎨 Auto Palette</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Label Color</label>
+                <div class="color-row">
+                    <input type="color" id="label-color" value="#ffffff" class="color-swatch">
+                    <button id="btn-auto-label-color" class="btn-small">🎨 Auto Palette</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="pattern-select">Pattern</label>
+                <select id="pattern-select" class="styled-select">
+                    <option value="DEFAULT">Default</option>
+                    <option value="ANNAT1">Annat 1</option>
+                    <option value="ANNAT2">Annat 2</option>
+                    <option value="ANNAT3">Annat 3</option>
+                    <option value="ARTEFACT1">Artefact 1</option>
+                    <option value="ARTEFACT2">Artefact 2</option>
+                    <option value="CROC">Croc</option>
+                    <option value="ILLUSION1">Illusion 1</option>
+                    <option value="ILLUSION2">Illusion 2</option>
+                    <option value="MASSIVE1">Massive 1</option>
+                    <option value="MASSIVE2">Massive 2</option>
+                    <option value="MUSEUM1">Museum 1</option>
+                    <option value="MUSEUM2">Museum 2</option>
+                    <option value="PASSAGE1">Passage 1</option>
+                    <option value="PASSAGE2">Passage 2</option>
+                    <option value="bpm1">BPM 1</option>
+                </select>
+            </div>
+
+            <div class="palette-preview" id="palette-preview">
+                <!-- Palette swatches injected here -->
             </div>
         </div>
 
-        <div class="form-group" style="margin-top: 15px;">
-            <label for="label-color">Sticker Label Color</label>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="color" id="label-color" value="#ffffff">
-                <button id="btn-auto-label-color" class="btn-small">Use Album Palette</button>
+        <!-- Cover Alignment Card -->
+        <div class="card-glass">
+            <h4 class="card-heading">Cover Alignment</h4>
+
+            <div class="slider-grid">
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <label>Scale X</label>
+                        <span class="slider-value" id="val-scale-x">100%</span>
+                    </div>
+                    <input type="range" id="cover-scale-x" min="10" max="200" value="100" class="styled-range">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <label>Scale Y</label>
+                        <span class="slider-value" id="val-scale-y">100%</span>
+                    </div>
+                    <input type="range" id="cover-scale-y" min="10" max="200" value="100" class="styled-range">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <label>Offset X</label>
+                        <span class="slider-value" id="val-offset-x">0px</span>
+                    </div>
+                    <input type="range" id="cover-offset-x" min="-100" max="100" value="0" class="styled-range">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <label>Offset Y</label>
+                        <span class="slider-value" id="val-offset-y">0px</span>
+                    </div>
+                    <input type="range" id="cover-offset-y" min="-100" max="100" value="0" class="styled-range">
+                </div>
+                <div class="slider-group full-width">
+                    <div class="slider-header">
+                        <label>Rotation</label>
+                        <span class="slider-value" id="val-rotation">0°</span>
+                    </div>
+                    <input type="range" id="cover-rotation" min="-180" max="180" value="0" class="styled-range">
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button id="btn-reset-cover-align" class="btn-small" style="flex: 1;">↺ Reset</button>
+                <button id="btn-save-global-align" class="btn-small" style="flex: 1;" title="Set these settings as default for new cassettes">📌 Set Default</button>
             </div>
         </div>
 
-        <div class="form-group" style="margin-top: 15px;">
-            <label for="pattern-select">Cassette Pattern</label>
-            <select id="pattern-select" style="padding: 8px; background: #333; color: white; border-radius: 4px;">
-                <option value="DEFAULT">Default</option>
-                <option value="ANNAT3">Glossy</option>
-                <option value="MATTE">Matte</option>
-                <option value="SCRATCHED">Scratched</option>
-            </select>
-        </div>
-
-        <div class="palette-preview" id="palette-preview" style="display: flex; gap: 5px; margin-top: 20px;">
-            <!-- Palette colors will be injected here -->
-        </div>
-
-        <!-- Cover Image Adjustments -->
-        <div class="form-group" style="margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;">
-            <h4 style="color: var(--accent-color); margin: 0 0 10px 0;">Cover Alignment</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div>
-                    <label style="font-size: 0.8em; color: #aaa;">Scale X (%)</label>
-                    <input type="range" id="cover-scale-x" min="10" max="200" value="100" style="width: 100%;">
-                </div>
-                <div>
-                    <label style="font-size: 0.8em; color: #aaa;">Scale Y (%)</label>
-                    <input type="range" id="cover-scale-y" min="10" max="200" value="100" style="width: 100%;">
-                </div>
-                <div>
-                    <label style="font-size: 0.8em; color: #aaa;">Offset X (px)</label>
-                    <input type="range" id="cover-offset-x" min="-100" max="100" value="0" style="width: 100%;">
-                </div>
-                <div>
-                    <label style="font-size: 0.8em; color: #aaa;">Offset Y (px)</label>
-                    <input type="range" id="cover-offset-y" min="-100" max="100" value="0" style="width: 100%;">
-                </div>
-                <div style="grid-column: span 2;">
-                    <label style="font-size: 0.8em; color: #aaa;">Rotation (deg)</label>
-                    <input type="range" id="cover-rotation" min="-180" max="180" value="0" style="width: 100%;">
-                </div>
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <button id="btn-reset-cover-align" class="btn-small" style="width: 100%;">Reset</button>
-                <button id="btn-save-global-align" class="btn-small" style="width: 100%;" title="Set these settings as default for new cassettes">Set Default</button>
-            </div>
-        </div>
-
-        <!-- Stickers -->
-        <div class="form-group" style="margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;">
-            <h4 style="color: var(--accent-color); margin: 0 0 5px 0;">Stickers</h4>
-            <p style="font-size:0.75em; color:#888; margin: 0 0 10px 0;">Add custom sticker overlays to the cassette face.</p>
+        <!-- Stickers Card -->
+        <div class="card-glass">
+            <h4 class="card-heading">Stickers</h4>
+            <p class="card-desc">Add custom image overlays to the cassette face.</p>
             <div style="display: flex; gap: 8px;">
-                <button id="btn-add-sticker" class="btn-small" style="flex: 1;">➕ Add Sticker</button>
-                <button id="btn-clear-stickers" class="btn-small">Clear</button>
+                <button id="btn-add-sticker" class="btn-primary" style="flex: 1; padding: 8px 12px; font-size: 0.85em;">➕ Add Sticker</button>
+                <button id="btn-clear-stickers" class="btn-small">🗑 Clear</button>
             </div>
             <input type="file" id="file-sticker-upload" accept="image/png, image/jpeg" style="display: none;">
-            <div id="stickers-control-list" style="margin-top: 10px; max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
-                <!-- Sticker elements control will be added here -->
+            <div id="stickers-control-list" class="stickers-list">
+                <!-- Sticker elements will be injected here -->
             </div>
         </div>
     </div>
 
-    <div class="config-right">
-        <div class="cover-image-container" id="cover-image-container" title="Click to change cover image" style="margin-bottom: 20px;">
-            <img id="cover-image" src="../images_original/SmallCustomCassetteTemplate.png" alt="Cover Image" style="max-width: 250px; border-radius: 8px;">
-            <div class="cover-overlay-text">Click to Change Cover</div>
+    <!-- Right Panel: Preview -->
+    <div class="visuals-right">
+        <!-- Cover Image Picker -->
+        <div class="card-glass" style="align-items: center;">
+            <h4 class="card-heading" style="align-self: flex-start;">Album Cover</h4>
+            <div class="cover-image-container" id="cover-image-container" title="Click to change cover image">
+                <img id="cover-image" src="../images_original/SmallCustomCassetteTemplate.png" alt="Cover Image">
+                <div class="cover-overlay-text">Click to Change</div>
+            </div>
+            <input type="file" id="file-custom-cover" accept="image/png, image/jpeg" style="display: none;">
+
+            <!-- Video Frame Picker (hidden by default) -->
+            <div id="video-frame-picker" style="display:none; width: 100%;">
+                <label style="font-size:0.85em; color:#aaa; display:block; margin-bottom:5px;">📽 Video Cover Frame</label>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <input type="number" id="frame-time-input" placeholder="Time (sec)" min="0" step="0.5" class="styled-number-input">
+                    <button id="btn-extract-frame" class="btn-small">Extract Frame</button>
+                </div>
+                <p class="card-desc" style="margin-top: 4px;">Seek to this time in the video to use as the cover.</p>
+            </div>
+        </div>
+
+        <!-- Cassette Preview -->
+        <div class="card-glass" style="align-items: center; flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <h4 class="card-heading">Live Preview</h4>
+                <button id="btn-view-3d" class="btn-primary" style="padding: 6px 12px; font-size: 0.8em; margin: 0;">👁 View 3D Model</button>
+            </div>
+            <div class="cassette-3d-model" id="visuals-cassette-model">
+                <!-- Background cover image -->
+                <img id="visuals-cover-image" src="" class="cassette-cover" style="display: none; position: absolute; pointer-events: none; top: 50%; left: 50%; width: 220px; height: 140px; transform-origin: center center;">
+                
+                <!-- Stickers container -->
+                <div id="visuals-stickers-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></div>
+
+                <!-- Foreground cassette template -->
+                <img src="../images/cassetteFace.png" class="cassette-template"
+                    id="preview-cassette-template" alt="Cassette Template">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3D Preview Modal Popup -->
+<div id="visuals-3d-popup" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 2500; justify-content: center; align-items: center;">
+    <div class="modal-container card-glass" style="max-width: 900px; width: 90%; align-items: center; justify-content: center; position: relative; padding: 30px;">
+        <button id="btn-close-3d-popup" class="export-close-btn" style="position: absolute; top: 15px; right: 20px; background: none; border: none; color: #888; font-size: 1.8em; cursor: pointer;">✕</button>
+        <h3 style="margin-top: 0; color: var(--accent-color); align-self: flex-start;">3D Cassette View</h3>
+        
+        <!-- The 3D Model structure inside the popup (Real Three.js WebGL) -->
+        <div class="perspective-container" style="padding: 10px 0; display: flex; justify-content: center; align-items: center; width: 100%;">
+            <div id="visuals-3d-canvas-container" style="width: 100%; height: 600px; position: relative; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden;"></div>
         </div>
         
-        <!-- Hidden input for selecting a custom cover image -->
-        <input type="file" id="file-custom-cover" accept="image/png, image/jpeg" style="display: none;">
-
-        <!-- Video Frame Picker (only visible for webm/mp4 etc.) -->
-        <div id="video-frame-picker" style="display:none; margin-bottom: 20px; width: 100%;">
-            <label style="font-size:0.85em; color:#aaa; display:block; margin-bottom:5px;">
-                📽 Video Cover Frame
-            </label>
-            <div style="display:flex; gap:8px; align-items:center;">
-                <input type="number" id="frame-time-input" placeholder="Time (sec)" min="0" step="0.5"
-                    style="width:110px; padding:6px 8px; background:#2a2a2a; color:white; border:1px solid #444; border-radius:6px; font-family:inherit;">
-                <button id="btn-extract-frame" class="btn-small">Extract Frame</button>
-            </div>
-            <p style="color:#888; font-size:0.75em; margin-top:4px;">Seek to this time in the video to use as the cassette cover thumbnail.</p>
-        </div>
-
-        <!-- 3D Preview -->
-        <div class="cassette-3d-model" id="visuals-cassette-model" style="width: 300px; height: 300px; position: relative;">
-            <!-- Background cover image -->
-            <img id="visuals-cover-image" src="" class="cassette-cover" style="display: none; position: absolute; pointer-events: none; top: 50%; left: 50%; width: 220px; height: 140px; transform-origin: center center;">
-            
-            <!-- Stickers container -->
-            <div id="visuals-stickers-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></div>
-
-            <!-- Foreground cassette template with transparent window -->
-            <img src="../images_original/SmallCustomCassetteTemplate.png" class="cassette-template"
-                id="preview-cassette-template" alt="Cassette Template"
-                style="filter: drop-shadow(5px 5px 15px rgba(0,0,0,0.5)); transform: translate(-50%, -50%) rotate(-90deg); transition: filter 0.3s; position: absolute; top: 50%; left: 50%;">
-        </div>
-        <p style="color: #aaa; font-style: italic;">Real-time CSS Preview</p>
+        <p style="color: #888; font-size: 0.85em; font-style: italic; margin-top: 15px; margin-bottom: 0;">Drag mouse around to rotate the 3D cassette</p>
     </div>
 </div>

@@ -118,23 +118,23 @@ $(function() {
 
             // Add sticker control row in left panel
             const $ctrl = $(`
-                <div class="sticker-control-item" style="border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; background: rgba(0,0,0,0.2);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                        <span style="font-size:0.8em; font-weight:bold;">Sticker #${index + 1}</span>
-                        <button class="btn-small btn-del-sticker" data-id="${s.id}" style="padding: 2px 6px; background: #ff4a4a; color: white; border: none; border-radius: 4px;">Delete</button>
+                <div class="sticker-control-item" style="border: 1px solid rgba(255,255,255,0.08); padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.15);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size:0.8em; font-weight:bold; color: var(--accent-color);">Sticker #${index + 1}</span>
+                        <button class="btn-small btn-del-sticker" data-id="${s.id}" style="padding: 2px 8px; background: #ff4a4a; color: white; border: none; border-radius: 4px; font-size: 0.75em;">✕</button>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                         <div>
-                            <label style="font-size: 0.75em; color: #888;">X Position</label>
-                            <input type="range" class="sticker-slider-x" data-id="${s.id}" min="-150" max="150" value="${s.x}" style="width:100%;">
+                            <label style="font-size: 0.7em; color: #888; text-transform: uppercase;">X Pos</label>
+                            <input type="range" class="sticker-slider-x styled-range" data-id="${s.id}" min="-150" max="150" value="${s.x}">
                         </div>
                         <div>
-                            <label style="font-size: 0.75em; color: #888;">Y Position</label>
-                            <input type="range" class="sticker-slider-y" data-id="${s.id}" min="-150" max="150" value="${s.y}" style="width:100%;">
+                            <label style="font-size: 0.7em; color: #888; text-transform: uppercase;">Y Pos</label>
+                            <input type="range" class="sticker-slider-y styled-range" data-id="${s.id}" min="-150" max="150" value="${s.y}">
                         </div>
                         <div style="grid-column: span 2;">
-                            <label style="font-size: 0.75em; color: #888;">Scale (%)</label>
-                            <input type="range" class="sticker-slider-scale" data-id="${s.id}" min="10" max="200" value="${s.scale}" style="width:100%;">
+                            <label style="font-size: 0.7em; color: #888; text-transform: uppercase;">Scale</label>
+                            <input type="range" class="sticker-slider-scale styled-range" data-id="${s.id}" min="10" max="200" value="${s.scale}">
                         </div>
                     </div>
                 </div>
@@ -182,19 +182,38 @@ $(function() {
                 saveVisuals();
             }
         });
+        if (typeof debounceUpdateTexture === 'function') debounceUpdateTexture();
+    }
+
+    // Live slider value readouts
+    function updateSliderValues() {
+        $('#val-scale-x').text($coverScaleX.val() + '%');
+        $('#val-scale-y').text($coverScaleY.val() + '%');
+        $('#val-offset-x').text($coverOffsetX.val() + 'px');
+        $('#val-offset-y').text($coverOffsetY.val() + 'px');
+        $('#val-rotation').text($coverRotation.val() + '°');
     }
 
     // Setup input change event listeners
     $cassetteColor.on('input', () => { applyPreviewTint(); saveVisuals(); });
     $labelColor.on('input', () => { applyPreviewTint(); saveVisuals(); });
-    $patternSelect.on('change', saveVisuals);
+    function getTextureFilename(pattern) {
+        if (!pattern || pattern === 'DEFAULT') return 'cassetteDEFAULT.png';
+        if (pattern === 'bpm1') return 'cassette_bpm1.png';
+        return `cassette${pattern}.png`;
+    }
+
+    $patternSelect.on('change', () => {
+        debounceUpdateTexture();
+        saveVisuals();
+    });
 
     // Alignment changes
-    $coverScaleX.on('input', () => { applyCoverAlignment(); saveVisuals(); });
-    $coverScaleY.on('input', () => { applyCoverAlignment(); saveVisuals(); });
-    $coverOffsetX.on('input', () => { applyCoverAlignment(); saveVisuals(); });
-    $coverOffsetY.on('input', () => { applyCoverAlignment(); saveVisuals(); });
-    $coverRotation.on('input', () => { applyCoverAlignment(); saveVisuals(); });
+    $coverScaleX.on('input', () => { applyCoverAlignment(); updateSliderValues(); debounceUpdateTexture(); saveVisuals(); });
+    $coverScaleY.on('input', () => { applyCoverAlignment(); updateSliderValues(); debounceUpdateTexture(); saveVisuals(); });
+    $coverOffsetX.on('input', () => { applyCoverAlignment(); updateSliderValues(); debounceUpdateTexture(); saveVisuals(); });
+    $coverOffsetY.on('input', () => { applyCoverAlignment(); updateSliderValues(); debounceUpdateTexture(); saveVisuals(); });
+    $coverRotation.on('input', () => { applyCoverAlignment(); updateSliderValues(); debounceUpdateTexture(); saveVisuals(); });
 
     $('#btn-reset-cover-align').on('click', () => {
         $coverScaleX.val(100);
@@ -203,6 +222,8 @@ $(function() {
         $coverOffsetY.val(0);
         $coverRotation.val(0);
         applyCoverAlignment();
+        updateSliderValues();
+        debounceUpdateTexture();
         saveVisuals();
     });
 
@@ -257,6 +278,8 @@ $(function() {
             reader.onload = async function(ev) {
                 $coverImage.attr('src', ev.target.result);
                 $visualsCoverImage.attr('src', ev.target.result).show();
+                delete imageCache['cover'];
+                debounceUpdateTexture();
             };
             reader.readAsDataURL(e.target.files[0]);
         }
@@ -286,6 +309,8 @@ $(function() {
             $coverImage.attr('src', freshSrc);
             $visualsCoverImage.attr('src', freshSrc).show();
             if (data) data.coverHash = result.coverHash;
+            delete imageCache['cover'];
+            debounceUpdateTexture();
         } else {
             alert('Could not extract frame: ' + (result?.error || 'Unknown error'));
         }
@@ -305,7 +330,10 @@ $(function() {
             applyPreviewTint();
         }
         if (data.visuals) {
-            $patternSelect.val(data.visuals.CassetteTextureInternalName || 'DEFAULT');
+            const pattern = data.visuals.CassetteTextureInternalName || 'DEFAULT';
+            $patternSelect.val(pattern);
+            const textureFile = getTextureFilename(pattern);
+            $('.cassette-face.front, .cassette-face.back').css('background-image', `url("../images/${textureFile}")`);
             
             // Read cover alignment with localStorage global defaults as fallback
             const defaultAlignStr = localStorage.getItem('default-cover-align');
@@ -335,15 +363,20 @@ $(function() {
                 $coverOffsetY.val(0);
                 $coverRotation.val(0);
             }
+            $patternSelect.val('DEFAULT');
+            const textureFile = getTextureFilename('DEFAULT');
+            $('.cassette-face.front, .cassette-face.back').css('background-image', `url("../images/${textureFile}")`);
             stickersList = [];
         }
 
         applyCoverAlignment();
+        updateSliderValues();
         renderStickers();
+        debounceUpdateTexture();
 
         const coverSrc = data.coverHash
             ? `../cassetteAlbumCovers/${data.coverHash}.jpg`
-            : '../images_original/SmallCustomCassetteTemplate.png';
+            : '../images/cassetteFace.png';
         
         $coverImage.attr('src', coverSrc);
         $visualsCoverImage.attr('src', coverSrc).show();
@@ -389,6 +422,141 @@ $(function() {
             $labelColor.val(data.colors.Vibrant);
             applyPreviewTint();
             saveVisuals();
+        }
+    });
+
+    // ── Canvas-based Texture Synthesis (Real 3D Texture Mapping) ──────
+    const imageCache = {};
+    const textureCanvas = document.createElement('canvas');
+    textureCanvas.width = 512;
+    textureCanvas.height = 512;
+    let canvasTextureInstance = null;
+
+    function cacheImage(key, src) {
+        return new Promise((resolve) => {
+            if (imageCache[key] && imageCache[key].src === src) {
+                resolve(imageCache[key]);
+                return;
+            }
+            const img = new Image();
+            img.onload = () => {
+                imageCache[key] = img;
+                resolve(img);
+            };
+            img.onerror = () => {
+                resolve(null);
+            };
+            img.src = src;
+        });
+    }
+
+    async function updateGeneratedTexture() {
+        const ctx = textureCanvas.getContext('2d');
+        ctx.clearRect(0, 0, 512, 512);
+
+        // 1. Draw base pattern texture from images directory
+        const pattern = $patternSelect.val() || 'DEFAULT';
+        const textureFile = getTextureFilename(pattern);
+        const patternImg = await cacheImage('pattern_' + pattern, `../images/${textureFile}`);
+        if (patternImg) {
+            ctx.drawImage(patternImg, 0, 0, 512, 512);
+        }
+
+        const data = window.cassetteData?.find(c => c.UUID === window.currentCassetteUUID);
+        if (!data) return;
+
+        // 2. Draw custom cover image mapped to the horizontal label coordinates
+        const coverSrc = data.coverHash
+            ? `../cassetteAlbumCovers/${data.coverHash}.jpg`
+            : null;
+
+        const atlasScale = 330 / 300;
+
+        if (coverSrc && data.coverHash) {
+            const coverImg = await cacheImage('cover', coverSrc);
+            if (coverImg) {
+                const sx = parseFloat($coverScaleX.val());
+                const sy = parseFloat($coverScaleY.val());
+                const ox = parseFloat($coverOffsetX.val());
+                const oy = parseFloat($coverOffsetY.val());
+                const rot = parseFloat($coverRotation.val());
+
+                ctx.save();
+                // Move to center of vertical front face on texture atlas sheet
+                ctx.translate(128, 256);
+                ctx.rotate(-Math.PI / 2); // Rotate -90deg so it aligns horizontally
+                
+                // Apply editor offsets & transformations
+                ctx.translate(ox * atlasScale, oy * atlasScale);
+                ctx.rotate((rot * Math.PI) / 180);
+                ctx.scale(sx / 100, sy / 100);
+
+                const coverW = 220 * atlasScale;
+                const coverH = 140 * atlasScale;
+                ctx.drawImage(coverImg, -coverW / 2, -coverH / 2, coverW, coverH);
+                ctx.restore();
+            }
+        }
+
+        // 3. Draw stickers
+        for (const s of stickersList) {
+            const stickerImg = await cacheImage(s.id, s.src);
+            if (stickerImg) {
+                ctx.save();
+                ctx.translate(128, 256);
+                ctx.rotate(-Math.PI / 2);
+
+                ctx.translate(s.x * atlasScale, s.y * atlasScale);
+                ctx.scale(s.scale / 100, s.scale / 100);
+
+                const stickerW = 50 * atlasScale;
+                const stickerH = 50 * atlasScale;
+                ctx.drawImage(stickerImg, -stickerW / 2, -stickerH / 2, stickerW, stickerH);
+                ctx.restore();
+            }
+        }
+
+        // 4. Signal WebGL to refresh texture
+        if (canvasTextureInstance) {
+            canvasTextureInstance.needsUpdate = true;
+        }
+    }
+
+    const debounceUpdateTexture = debounce(updateGeneratedTexture, 100);
+
+    // ── 3D View Popup Modal Handlers (Real Three.js WebGL) ────────────
+    const $btnView3d = $('#btn-view-3d');
+    const $popup3d = $('#visuals-3d-popup');
+    const $btnClose3d = $('#btn-close-3d-popup');
+
+    $btnView3d.on('click', () => {
+        if (!window.currentCassetteUUID) return;
+        $popup3d.css('display', 'flex');
+        
+        // Initialize WebGL view after modal display has been applied
+        setTimeout(() => {
+            const container = document.getElementById('visuals-3d-canvas-container');
+            const data = window.cassetteData.find(c => c.UUID === window.currentCassetteUUID);
+            if (window.Cassette3D && container) {
+                window.Cassette3D.init(container, data);
+            }
+        }, 100);
+    });
+
+    function destroyThreeJS() {
+        if (window.Cassette3D) window.Cassette3D.destroy();
+    }
+
+    $btnClose3d.on('click', () => {
+        $popup3d.hide();
+        destroyThreeJS();
+    });
+
+    // Close on overlay click
+    $popup3d.on('click', (e) => {
+        if ($(e.target).is($popup3d)) {
+            $popup3d.hide();
+            destroyThreeJS();
         }
     });
 });
